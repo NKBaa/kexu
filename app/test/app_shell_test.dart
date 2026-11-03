@@ -366,16 +366,25 @@ void main() {
     expect(find.byType(NavigationRail), findsOneWidget);
   });
 
-  testWidgets('切换到「批量操作」页签能正常渲染并列出课程', (tester) async {
+  testWidgets('批量修改收在更多菜单，日程页签列出课程', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     await pumpApp(tester, seed: sampleTimetable());
 
-    await tester.tap(find.text('批量'));
-    await settle(tester);
+    await tester.tap(find.byKey(const Key('timetable_more_button')));
+    await tester.pumpAndSettle();
+    expect(find.text('批量修改'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('timetable_batch_button')));
+    await tester.pumpAndSettle();
+    expect(find.text('高等数学'), findsWidgets);
 
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('日程'));
+    await tester.pumpAndSettle();
+    expect(find.text('日程'), findsWidgets);
     expect(find.text('高等数学'), findsWidgets);
   });
 

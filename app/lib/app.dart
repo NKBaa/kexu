@@ -8,10 +8,10 @@ import 'core/app_info.dart';
 import 'core/theme.dart';
 import 'features/ai/ai_edit_page.dart';
 import 'features/ai/ai_import_page.dart';
-import 'features/batch/batch_ops_page.dart';
 import 'features/editor/course_editor_page.dart';
 import 'features/onboarding/onboarding_wizard_page.dart';
 import 'features/notifications/class_reminder_sessions.dart';
+import 'features/schedule/schedule_page.dart';
 import 'features/settings/pages/update_settings_page.dart';
 import 'features/settings/providers/settings_provider.dart';
 import 'features/settings/settings_home_page.dart';
@@ -382,7 +382,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       TimetablePage(
         onAddRequested: _showCreateSheet,
       ),
-      const BatchOpsPage(),
+      const SchedulePage(),
       const SettingsHomePage(),
     ];
 
@@ -406,9 +406,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                       label: Text('课表'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.checklist_outlined),
-                      selectedIcon: Icon(Icons.checklist),
-                      label: Text('批量'),
+                      icon: Icon(Icons.event_note_outlined),
+                      selectedIcon: Icon(Icons.event_note),
+                      label: Text('日程'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.settings_outlined),
@@ -434,9 +434,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   label: '课表',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.checklist_outlined),
-                  selectedIcon: Icon(Icons.checklist),
-                  label: '批量',
+                  icon: Icon(Icons.event_note_outlined),
+                  selectedIcon: Icon(Icons.event_note),
+                  label: '日程',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.settings_outlined),

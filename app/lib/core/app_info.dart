@@ -14,10 +14,10 @@ library;
 const String appName = '课序';
 
 /// 语义化版本号，如 `1.1.0`。
-const String appVersion = '1.2.27';
+const String appVersion = '1.2.28';
 
 /// 构建号（Android versionCode），如 `2`。
-const int appBuildNumber = 83;
+const int appBuildNumber = 84;
 
 /// 展示用版本号，如 `1.1.0`。
 const String versionLabel = appVersion;

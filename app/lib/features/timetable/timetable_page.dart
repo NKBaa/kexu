@@ -11,6 +11,7 @@ import '../../data/models/semester.dart';
 import '../../data/models/timetable.dart';
 import 'providers/timetable_provider.dart';
 import 'timetable_share_service.dart';
+import '../batch/batch_ops_page.dart';
 import '../editor/course_editor_page.dart';
 import '../onboarding/onboarding_wizard_page.dart';
 import '../settings/pages/data_settings_page.dart';
@@ -19,6 +20,7 @@ import 'widgets/week_grid.dart';
 
 enum _TimetableMenuAction {
   add,
+  batch,
   share,
   data,
   tutorial,
@@ -442,6 +444,12 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
                   value: _TimetableMenuAction.add,
                 ),
               item(
+                key: const Key('timetable_batch_button'),
+                icon: Icons.checklist_outlined,
+                title: '批量修改',
+                value: _TimetableMenuAction.batch,
+              ),
+              item(
                 key: const Key('timetable_share_button'),
                 icon: Icons.ios_share,
                 title: '分享课表',
@@ -493,6 +501,10 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
     switch (action) {
       case _TimetableMenuAction.add:
         widget.onAddRequested?.call();
+      case _TimetableMenuAction.batch:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const BatchOpsPage()),
+        );
       case _TimetableMenuAction.share:
         _openShareSheet(context, ref);
       case _TimetableMenuAction.data:
