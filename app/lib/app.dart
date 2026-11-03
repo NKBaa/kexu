@@ -190,6 +190,7 @@ class HomeShell extends ConsumerStatefulWidget {
 
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
+  bool _tourScheduled = false;
   final GlobalKey _aiFabKey = GlobalKey();
 
   @override
@@ -397,6 +398,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
     final width = MediaQuery.sizeOf(context).width;
     final useRail = width >= 900;
+
+    if (ref.watch(timetableTourRequestProvider) && !_tourScheduled) {
+      _tourScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        ref.read(timetableTourRequestProvider.notifier).state = false;
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        if (mounted) await startTimetableTour();
+        _tourScheduled = false;
+      });
+    }
 
     final pages = <Widget>[
       TimetablePage(

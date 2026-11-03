@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:showcaseview/showcaseview.dart';
+
+/// 首次向导完成后请求打开交互教程。
+final timetableTourRequestProvider = StateProvider<bool>((ref) => false);
 
 /// 课表交互教程的锚点。
 class TimetableTutorialKeys {
