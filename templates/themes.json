@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-03",
+  "themes": [
+    {
+      "id": "market-ocean",
+      "name": "海盐",
+      "author": "课序主题市场",
+      "description": "清透的海蓝背景，适合白天看课表。",
+      "radius": 24,
+      "light": {
+        "seed": "#2B7A9B",
+        "surface": "#F3FAFD",
+        "card": "#FFFFFF",
+        "ink": "#10222A"
+      },
+      "dark": {
+        "seed": "#7EC8E3",
+        "surface": "#0B151A",
+        "card": "#13242C",
+        "ink": "#E4F3F8"
+      }
+    },
+    {
+      "id": "market-sakura",
+      "name": "樱花拿铁",
+      "author": "课序主题市场",
+      "description": "粉色与奶咖色搭配，柔和耐看。",
+      "radius": 20,
+      "light": {
+        "seed": "#C45C7C",
+        "surface": "#FFF8F4",
+        "card": "#FFFFFF",
+        "ink": "#2B1B1E"
+      },
+      "dark": {
+        "seed": "#E8A2BC",
+        "surface": "#1B1215",
+        "card": "#271A1E",
+        "ink": "#F7E8EC"
+      }
+    },
+    {
+      "id": "market-mono",
+      "name": "纸墨",
+      "author": "课序主题市场",
+      "description": "接近纸张的暖灰，低干扰。",
+      "radius": 16,
+      "light": {
+        "seed": "#5B5B5B",
+        "surface": "#F5F3EE",
+        "card": "#FFFEFA",
+        "ink": "#1C1C1C"
+      },
+      "dark": {
+        "seed": "#C9C4B8",
+        "surface": "#111110",
+        "card": "#1C1B19",
+        "ink": "#F1EEE6"
+      }
+    }
+  ]
+}

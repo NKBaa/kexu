@@ -1,0 +1,46 @@
+name: course_timetable
+description: "课序（Kexu）—— 面向大学生的不规律课表管理 App（Android + Windows），支持大模型图片转课表与自然语言改课表。"
+publish_to: 'none'
+
+version: 1.2.27+83
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 中文日期选择器等 Material 组件的本地化
+  flutter_localizations:
+    sdk: flutter
+
+  # 状态管理：AsyncNotifier 驱动的课表/设置状态
+  flutter_riverpod: ^2.5.1
+
+  # 大模型 API 调用（OpenAI 兼容 /chat/completions）
+  http: ^1.2.2
+
+  # 本地数据目录（课表 JSON、AI 配置、备份）
+  path_provider: ^2.1.4
+
+  # 图片选择（图片转课表）与 JSON 导入导出，Windows/Android 双端支持。
+  # 13.x 为联邦插件架构，Android 端自带匹配的 compileSdk。
+  file_picker: ^13.1.0
+
+  # 在线更新：打开 GitHub Release 页面 / 浏览器下载安装兜底
+  url_launcher: ^6.3.2
+
+  # 课表分享：把 .ics / .json 文件交给系统分享面板（Android/Windows）
+  share_plus: ^13.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+

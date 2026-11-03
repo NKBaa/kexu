@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「今日课表」桌面小组件的 RemoteViews 布局。
+
+  RemoteViews 只支持有限的 View 类型，不要加 ConstraintLayout、自定义 View
+  或 Material 组件，否则部分桌面启动器会 InflateException。
+
+  布局原则：
+  - 顶部是标题 + 日期/周次 + 课程数；
+  - 中间课程区占满剩余高度，每门课一张卡片，只有 1~2 门时卡片会自然变高；
+  - 底部固定「更新于」，不再出现一大片空白；
+  - 所有文案由 TimetableWidgetProvider.kt 在渲染时覆盖。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- 顶部：标题 + 日期/周次 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="今日课表"
+                android:textColor="#FF1A1C1E"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:paddingTop="1dp"
+                android:text=""
+                android:textColor="#FF5F6368"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_date_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:maxLines="1"
+            android:text=""
+            android:textColor="#FF5F6368"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- 节假日（有节假日时才显示） -->
+    <TextView
+        android:id="@+id/widget_holiday"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingTop="5dp"
+        android:text=""
+        android:textColor="#FFD93025"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <!-- 快照过期 / 还没有快照时，居中显示提示 -->
+    <TextView
+        android:id="@+id/widget_stale"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="3"
+        android:padding="8dp"
+        android:text="打开课序查看今日课程"
+        android:textColor="#FF5F6368"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <!-- 课程区：占满剩余高度；每门课一张卡片，1~2 门时会自动变高 -->
+    <LinearLayout
+        android:id="@+id/widget_sessions"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingTop="8dp">
+
+        <!-- 第 1 门课 -->
+        <LinearLayout
+            android:id="@+id/session_row_1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_session_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/session_accent_1"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="#FF1A73E8" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/session_time_1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="08:00-09:40"
+                        android:textColor="#FF5F6368"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/session_badge_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/widget_badge_bg"
+                        android:paddingStart="6dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="1dp"
+                        android:text="进行中"
+                        android:textColor="#FF1A73E8"
+                        android:textSize="9sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/session_name_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="2dp"
+                    android:text="高等数学"
+                    android:textColor="#FF1A1C1E"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/session_meta_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="1dp"
+                    android:text="A101"
+                    android:textColor="#FF5F6368"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 第 2 门课 -->
+        <LinearLayout
+            android:id="@+id/session_row_2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_session_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/session_accent_2"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="#FFDADCE0" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/session_time_2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="#FF5F6368"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/session_badge_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/widget_badge_bg"
+                        android:paddingStart="6dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="1dp"
+                        android:text="进行中"
+                        android:textColor="#FF1A73E8"
+                        android:textSize="9sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/session_name_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="2dp"
+                    android:text=""
+                    android:textColor="#FF1A1C1E"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/session_meta_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="1dp"
+                    android:text=""
+                    android:textColor="#FF5F6368"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 第 3 门课 -->
+        <LinearLayout
+            android:id="@+id/session_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_session_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/session_accent_3"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="#FFDADCE0" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/session_time_3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="#FF5F6368"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/session_badge_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/widget_badge_bg"
+                        android:paddingStart="6dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="1dp"
+                        android:text="进行中"
+                        android:textColor="#FF1A73E8"
+                        android:textSize="9sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/session_name_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="2dp"
+                    android:text=""
+                    android:textColor="#FF1A1C1E"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/session_meta_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="1dp"
+                    android:text=""
+                    android:textColor="#FF5F6368"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 第 4 门课 -->
+        <LinearLayout
+            android:id="@+id/session_row_4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_session_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/session_accent_4"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="#FFDADCE0" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/session_time_4"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="#FF5F6368"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/session_badge_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/widget_badge_bg"
+                        android:paddingStart="6dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="1dp"
+                        android:text="进行中"
+                        android:textColor="#FF1A73E8"
+                        android:textSize="9sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/session_name_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="2dp"
+                    android:text=""
+                    android:textColor="#FF1A1C1E"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/session_meta_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingTop="1dp"
+                    android:text=""
+                    android:textColor="#FF5F6368"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 空状态：今天没有课 / 节假日 -->
+        <TextView
+            android:id="@+id/widget_empty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="今天没有课"
+            android:textColor="#FF5F6368"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- 课程超过 4 门时的提示 -->
+    <TextView
+        android:id="@+id/widget_more"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="4dp"
+        android:text=""
+        android:textColor="#FF5F6368"
+        android:textSize="10sp"
+        android:visibility="gone" />
+
+    <!-- 底部：快照更新时间，固定在底部 -->
+    <TextView
+        android:id="@+id/widget_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="4dp"
+        android:text=""
+        android:textColor="#FF9AA0A6"
+        android:textSize="9sp"
+        android:visibility="gone" />
+</LinearLayout>

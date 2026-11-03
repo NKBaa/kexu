@@ -1,0 +1,22 @@
+# 统一换行符：仓库内用 LF，Windows 脚本在检出时用 CRLF。
+* text=auto
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制资源（不做换行符转换）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.otf binary
+*.ttf binary
+*.apk binary
+*.zip binary
+*.docx binary
+*.pptx binary
+*.xlsx binary
+*.jar binary

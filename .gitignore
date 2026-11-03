@@ -1,0 +1,17 @@
+# 构建与发布产物：由 tooling/build-all.ps1 生成，发布时作为 GitHub Release 资产上传，
+# 不进入 git（仓库只存源码与文档，避免历史里堆积几百 MB 的二进制）。
+/dist/
+/app/android/build/
+
+# 本地开发环境
+.vscode/
+*.log
+Thumbs.db
+.DS_Store
+
+# e2e 脚本生成的临时数据目录
+/.e2e-*/
+
+# 项目内部材料，不进入公开仓库
+/大学生创新创业训练计划项目申请书-智能课表.docx
+/课表App-创业训练项目答辩.pptx

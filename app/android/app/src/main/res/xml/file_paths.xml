@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider 可共享的路径白名单。
+  Flutter 侧把 APK 下载到 getTemporaryDirectory()/updates
+  （Android 上就是 cacheDir/updates），所以这里映射 cache-path。
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="updates" path="updates/" />
+    <external-cache-path name="external_updates" path="updates/" />
+</paths>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「今日课表」小组件的元数据。
+
+  关键项说明：
+  - minWidth/minHeight：桌面上的默认尺寸（4x4 单元格），课程卡片按高度自适应，
+    4x4 显示 3 门课，拉高到 4x5 显示 4 门；
+  - targetCellWidth/targetCellHeight：Android 12+ 用「单元格数」精确指定默认尺寸，
+    低版本系统会忽略这两个属性；
+  - updatePeriodMillis：系统每 30 分钟回调一次 onUpdate（系统下限就是 30 分钟），
+    用来刷新「正在上课」高亮；真正的课表数据由 Flutter 侧主动推送更新；
+  - resizeMode：允许用户横向/纵向拉伸（内容会跟着换行/显示更多行）；
+  - previewLayout：Android 12+ 的小组件选择器直接渲染真实布局做预览。
+
+  receiver 的声明写在 AndroidManifest.xml（由 Lead 统一接线），见
+  app/android/ANDROID_WIDGET_SETUP.md。
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="220dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="4"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_timetable"
+    android:previewLayout="@layout/widget_timetable"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />
