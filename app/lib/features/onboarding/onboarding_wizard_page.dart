@@ -615,7 +615,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         ),
         const SizedBox(height: 14),
         Text(
-          '教程可随时从课表「更多 → 重启教程」回看。',
+          '完成后可到课表「更多 → 交互教程」，在真实界面上跟着点一遍。',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

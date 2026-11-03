@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'core/app_info.dart';
 import 'core/theme.dart';
@@ -10,6 +11,7 @@ import 'features/ai/ai_edit_page.dart';
 import 'features/ai/ai_import_page.dart';
 import 'features/editor/course_editor_page.dart';
 import 'features/onboarding/onboarding_wizard_page.dart';
+import 'features/onboarding/timetable_tour.dart';
 import 'features/notifications/class_reminder_sessions.dart';
 import 'features/schedule/schedule_page.dart';
 import 'features/settings/pages/update_settings_page.dart';
@@ -193,6 +195,24 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
+    ShowcaseView.register(
+      globalTooltipActionConfig: const TooltipActionConfig(
+        position: TooltipActionPosition.inside,
+        alignment: MainAxisAlignment.spaceBetween,
+      ),
+      globalTooltipActions: [
+        TooltipActionButton(
+          type: TooltipDefaultActionType.previous,
+          name: '上一步',
+          hideActionWidgetForShowcase: [TimetableTutorialKeys.weekTitle],
+        ),
+        TooltipActionButton(
+          type: TooltipDefaultActionType.next,
+          name: '下一步',
+          hideActionWidgetForShowcase: [TimetableTutorialKeys.grid],
+        ),
+      ],
+    );
     // 启动后：先按用户设置跳到当前教学周，再触发一次自动同步
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -447,15 +467,20 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             ),
       // AI 助手移到右下角悬浮按钮，添加入口放到顶栏。
       floatingActionButton: _index == 0
-          ? KeyedSubtree(
-              key: const Key('home_ai_fab'),
-              child: FloatingActionButton.extended(
-                key: _aiFabKey,
-                heroTag: 'ai_assistant_fab',
-                onPressed: _openAiEdit,
-                icon: const Icon(Icons.auto_awesome),
-                label: const Text('AI'),
-                tooltip: 'AI 助手：一句话改课表、发图片',
+          ? Showcase(
+              key: TimetableTutorialKeys.aiButton,
+              title: 'AI 助手',
+              description: '点这里可以一句话改课表，也可以发课表截图给 AI 看。',
+              child: KeyedSubtree(
+                key: const Key('home_ai_fab'),
+                child: FloatingActionButton.extended(
+                  key: _aiFabKey,
+                  heroTag: 'ai_assistant_fab',
+                  onPressed: _openAiEdit,
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text('AI'),
+                  tooltip: 'AI 助手：一句话改课表、发图片',
+                ),
               ),
             )
           : null,

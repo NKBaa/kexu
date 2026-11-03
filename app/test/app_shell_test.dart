@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:showcaseview/showcaseview.dart';
 
 /// 假更新服务：HomeShell 启动时会自动检查更新（默认仓库已写死），
 /// widget 测试里必须拦掉，避免真的发网络请求。
@@ -508,7 +509,7 @@ void main() {
     expect(find.byKey(const Key('share_json_option')), findsOneWidget);
   });
 
-  testWidgets('更多菜单提供重启教程按钮', (tester) async {
+  testWidgets('更多菜单提供交互教程', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -516,8 +517,15 @@ void main() {
     await pumpApp(tester, seed: sampleTimetable());
     await tester.tap(find.byKey(const Key('timetable_more_button')));
     await tester.pumpAndSettle();
-    expect(find.text('重启教程'), findsOneWidget);
+    expect(find.text('交互教程'), findsOneWidget);
     expect(find.byKey(const Key('timetable_tutorial_button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('timetable_tutorial_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('切换周次'), findsOneWidget);
+    ShowcaseView.get().dismiss();
+    await tester.pump(const Duration(milliseconds: 500));
   });
 
   testWidgets('AI 助手在右下角悬浮按钮，添加在更多菜单', (tester) async {
