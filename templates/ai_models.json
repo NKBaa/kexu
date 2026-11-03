@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "updatedAt": "2026-11-03",
   "models": [
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen2.5-VL-72B-Instruct",
       "vision": true,
       "text": true,
@@ -13,8 +13,8 @@
       "note": "课表截图/表格识别能力强，视觉首选；价格比小模型高。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen2.5-VL-32B-Instruct",
       "vision": true,
       "text": true,
@@ -23,8 +23,8 @@
       "note": "视觉能力够用、成本更低，适合日常课表截图。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen2.5-VL-7B-Instruct",
       "vision": true,
       "text": true,
@@ -33,8 +33,8 @@
       "note": "轻量视觉模型，适合清晰、简单的课表截图。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "deepseek",
+      "providerLabel": "DeepSeek",
       "id": "deepseek-ai/DeepSeek-V3",
       "vision": false,
       "text": true,
@@ -43,8 +43,8 @@
       "note": "中文文本与指令理解强，适合一句话改课表。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "deepseek",
+      "providerLabel": "DeepSeek",
       "id": "deepseek-ai/DeepSeek-R1",
       "vision": false,
       "text": true,
@@ -53,8 +53,8 @@
       "note": "推理更强但更慢，适合复杂、多条件的改课表指令。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen2.5-72B-Instruct",
       "vision": false,
       "text": true,
@@ -63,8 +63,8 @@
       "note": "通用中文文本模型，性价比高。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "moonshotai",
+      "providerLabel": "Moonshot AI",
       "id": "moonshotai/Kimi-K2-Instruct",
       "vision": false,
       "text": true,
@@ -73,8 +73,8 @@
       "note": "长上下文，适合一次描述很多条改课表要求。"
     },
     {
-      "providerId": "siliconflow",
-      "providerLabel": "硅基流动",
+      "providerId": "zhipu",
+      "providerLabel": "智谱",
       "id": "zai-org/GLM-4.5V",
       "vision": true,
       "text": true,
@@ -84,7 +84,7 @@
     },
     {
       "providerId": "zhipu",
-      "providerLabel": "智谱 GLM",
+      "providerLabel": "智谱",
       "id": "glm-4v-plus",
       "vision": true,
       "text": true,
@@ -94,7 +94,7 @@
     },
     {
       "providerId": "zhipu",
-      "providerLabel": "智谱 GLM",
+      "providerLabel": "智谱",
       "id": "glm-4v",
       "vision": true,
       "text": true,
@@ -104,7 +104,7 @@
     },
     {
       "providerId": "zhipu",
-      "providerLabel": "智谱 GLM",
+      "providerLabel": "智谱",
       "id": "glm-4-plus",
       "vision": false,
       "text": true,
@@ -114,7 +114,7 @@
     },
     {
       "providerId": "zhipu",
-      "providerLabel": "智谱 GLM",
+      "providerLabel": "智谱",
       "id": "glm-4-air",
       "vision": false,
       "text": true,
@@ -124,7 +124,7 @@
     },
     {
       "providerId": "zhipu",
-      "providerLabel": "智谱 GLM",
+      "providerLabel": "智谱",
       "id": "glm-z1-air",
       "vision": false,
       "text": true,
@@ -133,8 +133,8 @@
       "note": "带推理能力的轻量模型，适合多步改课表。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-vl-max",
       "vision": true,
       "text": true,
@@ -143,8 +143,8 @@
       "note": "视觉旗舰，识别课表截图与表格稳定。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-vl-plus",
       "vision": true,
       "text": true,
@@ -153,8 +153,8 @@
       "note": "视觉能力均衡，价格比 max 低。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen2.5-vl-72b-instruct",
       "vision": true,
       "text": true,
@@ -163,8 +163,8 @@
       "note": "开源视觉模型，适合自建/兼容网关。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-plus",
       "vision": false,
       "text": true,
@@ -173,8 +173,8 @@
       "note": "文本能力与价格均衡，适合一句话改课表。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-turbo",
       "vision": false,
       "text": true,
@@ -183,8 +183,8 @@
       "note": "速度快、成本低，适合简单指令。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-max",
       "vision": false,
       "text": true,
@@ -193,8 +193,8 @@
       "note": "文本旗舰，复杂指令更稳。"
     },
     {
-      "providerId": "qwen",
-      "providerLabel": "通义千问",
+      "providerId": "alibaba",
+      "providerLabel": "阿里巴巴",
       "id": "qwen-long",
       "vision": false,
       "text": true,
@@ -273,8 +273,8 @@
       "note": "推理更强但更慢，适合复杂多条件指令。"
     },
     {
-      "providerId": "moonshot",
-      "providerLabel": "Moonshot Kimi",
+      "providerId": "moonshotai",
+      "providerLabel": "Moonshot AI",
       "id": "moonshot-v1-8k",
       "vision": false,
       "text": true,
@@ -283,8 +283,8 @@
       "note": "短文本，响应快。"
     },
     {
-      "providerId": "moonshot",
-      "providerLabel": "Moonshot Kimi",
+      "providerId": "moonshotai",
+      "providerLabel": "Moonshot AI",
       "id": "moonshot-v1-32k",
       "vision": false,
       "text": true,
@@ -293,8 +293,8 @@
       "note": "长文本理解好，适合批量调整。"
     },
     {
-      "providerId": "moonshot",
-      "providerLabel": "Moonshot Kimi",
+      "providerId": "moonshotai",
+      "providerLabel": "Moonshot AI",
       "id": "moonshot-v1-128k",
       "vision": false,
       "text": true,
@@ -303,7 +303,7 @@
       "note": "超长文本，适合一次处理整份课表说明。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash",
       "vision": true,
@@ -313,7 +313,7 @@
       "note": "Google 主力多模态，1M 上下文，图片转课表与一句话改课表都稳。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash-image",
       "vision": false,
@@ -323,7 +323,7 @@
       "note": "Nano Banana 生图模型且已弃用，不能输出课表文本。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash-lite",
       "vision": true,
@@ -333,7 +333,7 @@
       "note": "Gemini 精简多模态，成本低响应快，日常图片转课表够用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash-lite-PPV",
       "vision": true,
@@ -343,7 +343,7 @@
       "note": "轻量 Gemini 按次计费版，能力同 flash-lite，可读图改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash-PPV",
       "vision": true,
@@ -353,7 +353,7 @@
       "note": "Gemini 2.5 Flash 按次计费版，图片转课表与改课表均可。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-flash-preview-tts",
       "vision": false,
@@ -363,7 +363,7 @@
       "note": "语音合成模型，只产出音频不产出文字，不适合课表任务。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-2.5-pro-preview-tts",
       "vision": false,
@@ -373,7 +373,7 @@
       "note": "Pro 级语音合成，只出音频不出文字，课表任务不适用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3-flash-preview",
       "vision": true,
@@ -383,7 +383,7 @@
       "note": "新一代 Gemini Flash 预览版，多模态强，图片转课表效果好。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3-flash-preview-PPV",
       "vision": true,
@@ -393,7 +393,7 @@
       "note": "Gemini 3 Flash 预览按次计费版，可读图也能一句话改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3-pro-image",
       "vision": false,
@@ -403,7 +403,7 @@
       "note": "Nano Banana Pro 生图模型，画质高但不能输出课表文本。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3-pro-image-preview",
       "vision": false,
@@ -413,7 +413,7 @@
       "note": "生图模型预览版，只出图不产出文字，课表任务不可用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-image",
       "vision": false,
@@ -423,7 +423,7 @@
       "note": "生图模型，擅长提示词出图与图片编辑，不能输出课表文本。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-image-preview",
       "vision": false,
@@ -433,7 +433,7 @@
       "note": "图像生成预览版，只出图不产出文字，课表任务不可用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-lite",
       "vision": true,
@@ -443,7 +443,7 @@
       "note": "低延迟 Gemini 多模态，响应快，适合高频图片转课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-lite-image",
       "vision": false,
@@ -453,7 +453,7 @@
       "note": "轻量生图模型，1K 出图快但不出文字，课表任务不适用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-lite-PPV",
       "vision": true,
@@ -463,7 +463,7 @@
       "note": "低延迟 Gemini 按次计费版，多模态读图与改课表都可用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-lite-preview",
       "vision": true,
@@ -473,7 +473,7 @@
       "note": "轻量预览版（已弃用），多模态读图与改课表仍可用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-lite-preview-PPV",
       "vision": true,
@@ -483,7 +483,7 @@
       "note": "历史兼容预览版按次计费，可读图可改课表，建议迁新版。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-flash-tts-preview",
       "vision": false,
@@ -493,7 +493,7 @@
       "note": "低延迟语音合成，只产出音频不产出文字，不适合课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-pro-preview",
       "vision": true,
@@ -503,7 +503,7 @@
       "note": "Pro 级推理强，图片转课表与复杂改课表都可靠。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.1-pro-preview-customtools",
       "vision": true,
@@ -513,7 +513,7 @@
       "note": "同为 3.1 Pro，工具调用增强，适合复杂改课表任务。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.5-flash",
       "vision": true,
@@ -523,7 +523,7 @@
       "note": "主力多模态，图片转课表稳，速度与成本均衡。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.5-flash-lite",
       "vision": true,
@@ -533,7 +533,7 @@
       "note": "轻量多模态，图片转课表可用，适合低成本高频调用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.5-flash-lite-PPV",
       "vision": true,
@@ -543,7 +543,7 @@
       "note": "按次计费版 3.5 Flash Lite，能读图能改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.5-flash-PPV",
       "vision": true,
@@ -553,7 +553,7 @@
       "note": "按次计费版 3.5 Flash，多模态，适合少量试用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.6-flash",
       "vision": true,
@@ -563,7 +563,7 @@
       "note": "多模态 Flash，图片转课表与一句话改课表都能干。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.7-flash",
       "vision": true,
@@ -573,7 +573,7 @@
       "note": "多模态 Flash，读课表截图准，改写指令跟随好。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.8-flash",
       "vision": true,
@@ -583,7 +583,7 @@
       "note": "最新 Flash 多模态，图片转课表准，日常改课表首选。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.8-flash-lite-tts",
       "vision": false,
@@ -593,7 +593,7 @@
       "note": "语音合成模型，只出音频不产出文字，不能改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.8-flash-PPV",
       "vision": true,
@@ -603,7 +603,7 @@
       "note": "按次计费版 3.8 Flash，多模态，读图改课表均可。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.8-flash-tts",
       "vision": false,
@@ -613,7 +613,7 @@
       "note": "语音合成模型，输出音频而非文字，不适合课表任务。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-3.8-live",
       "vision": false,
@@ -623,7 +623,7 @@
       "note": "实时音视频对话模型，不适合图片转课表或改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-4-argon",
       "vision": true,
@@ -633,7 +633,7 @@
       "note": "旗舰级推理模型，复杂课表理解与改写质量最高。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-embedding-001",
       "vision": false,
@@ -643,7 +643,7 @@
       "note": "向量嵌入模型，不能对话或读图，无法处理课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-embedding-2",
       "vision": false,
@@ -653,7 +653,7 @@
       "note": "多模态向量嵌入，只能做检索，不能读图改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-embedding-2-preview",
       "vision": false,
@@ -663,7 +663,7 @@
       "note": "预览版嵌入模型，仅用于检索排序，不能改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "google",
       "providerLabel": "Google",
       "id": "gemini-robotics-er-2-preview",
       "vision": false,
@@ -673,8 +673,8 @@
       "note": "具身推理模型，面向机器人控制，不适合课表任务。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "cohere",
+      "providerLabel": "Cohere",
       "id": "openrouter/cohere/north-mini-code:free",
       "vision": false,
       "text": true,
@@ -683,8 +683,8 @@
       "note": "Cohere 编程向智能体模型，纯文本，可改课表但不读图。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "dotsstudio",
+      "providerLabel": "dots.studio",
       "id": "openrouter/dots-studio/dots-3-note-preview:free",
       "vision": true,
       "text": true,
@@ -693,8 +693,8 @@
       "note": "多模态笔记模型，能读图片文字，适合图片转课表。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "google",
+      "providerLabel": "Google",
       "id": "openrouter/google/gemma-4-26b-a4b-it:free",
       "vision": true,
       "text": true,
@@ -703,8 +703,8 @@
       "note": "Google 小尺寸多模态，读图快，适合快速图片转课表。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "google",
+      "providerLabel": "Google",
       "id": "openrouter/google/gemma-4-31b-it:free",
       "vision": true,
       "text": true,
@@ -713,8 +713,8 @@
       "note": "Gemma 4 最大指令版，图文都能读，复杂课表更稳。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "liquid",
+      "providerLabel": "Liquid AI",
       "id": "openrouter/liquid/lfm-2.5-2.6b:free",
       "vision": false,
       "text": true,
@@ -723,8 +723,8 @@
       "note": "Liquid 小模型，纯文本推理，只适合简单文字改课表。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "vision": true,
       "text": true,
@@ -733,8 +733,8 @@
       "note": "NVIDIA 全模态小模型，图文音视频都能读，图片转课表可用。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
       "vision": false,
       "text": true,
@@ -743,8 +743,8 @@
       "note": "Nemotron 3 Super 纯文本长上下文，复杂指令改课表更稳。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
       "vision": false,
       "text": true,
@@ -753,8 +753,8 @@
       "note": "Nemotron 3 Ultra 旗舰推理，纯文本，复杂改课表首选。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3.5-content-safety:free",
       "vision": false,
       "text": false,
@@ -763,8 +763,8 @@
       "note": "内容安全审核模型，只做内容分类，不产课表文本。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3.5-lightning:free",
       "vision": false,
       "text": true,
@@ -773,8 +773,8 @@
       "note": "Nemotron 3.5 轻量纯文本，速度快，适合简单改课表。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "nvidia",
+      "providerLabel": "NVIDIA",
       "id": "openrouter/nvidia/nemotron-3.5-super-vl:free",
       "vision": true,
       "text": true,
@@ -783,7 +783,7 @@
       "note": "Nemotron 3.5 视觉语言模型，能读截图，适合图片转课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openrouter",
       "providerLabel": "OpenRouter",
       "id": "openrouter/openrouter/free",
       "vision": false,
@@ -793,8 +793,8 @@
       "note": "随机路由模型，每次落到不同模型，输出不稳，不建议课表用。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "poolside",
+      "providerLabel": "Poolside",
       "id": "openrouter/poolside/laguna-s-2.1:free",
       "vision": false,
       "text": true,
@@ -803,8 +803,8 @@
       "note": "Poolside 编程模型，纯文本，可改课表但不读图。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "poolside",
+      "providerLabel": "Poolside",
       "id": "openrouter/poolside/laguna-xs-2.1:free",
       "vision": false,
       "text": true,
@@ -813,8 +813,8 @@
       "note": "Poolside 轻量编程模型，纯文本，只适合简单改课表。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "recursive",
+      "providerLabel": "Recursive",
       "id": "openrouter/recursive/flint-v1.0:free",
       "vision": false,
       "text": true,
@@ -823,8 +823,8 @@
       "note": "Recursive 免费编程模型，纯文本，可改课表但不读图。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "thinkingmachines",
+      "providerLabel": "Thinking Machines",
       "id": "openrouter/thinkingmachines/inkling-small:free",
       "vision": true,
       "text": true,
@@ -833,8 +833,8 @@
       "note": "Thinking Machines 小多模态，图文音频都读，图片转课表可用。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "thinkingmachines",
+      "providerLabel": "Thinking Machines",
       "id": "openrouter/thinkingmachines/inkling:free",
       "vision": true,
       "text": true,
@@ -843,8 +843,8 @@
       "note": "Thinking Machines 旗舰多模态，图文都读，复杂课表更稳。"
     },
     {
-      "providerId": "cotton",
-      "providerLabel": "OpenRouter",
+      "providerId": "chinatelecom",
+      "providerLabel": "中国电信",
       "id": "openrouter/xingchen-agi/xing4.0-29b-a4b:free",
       "vision": false,
       "text": true,
@@ -853,7 +853,7 @@
       "note": "中国电信星辰 MoE，纯文本，适合文字改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4-Flash",
       "vision": false,
@@ -863,7 +863,7 @@
       "note": "免费纯文本对话模型，适合一句话改课表，不能读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4-Flash-250414",
       "vision": false,
@@ -873,7 +873,7 @@
       "note": "免费纯文本模型，GLM-4-Flash 快照版，改课表够用但不能读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4.1V-Thinking-Flash",
       "vision": true,
@@ -883,7 +883,7 @@
       "note": "免费视觉推理模型，可读课表图片并改写课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4.5-Flash",
       "vision": false,
@@ -893,7 +893,7 @@
       "note": "免费通用文本模型，速度快，适合一句话改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4.6V-Flash",
       "vision": true,
@@ -903,7 +903,7 @@
       "note": "免费轻量视觉模型，能读图，适合图片转课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4.7-Flash",
       "vision": false,
@@ -913,7 +913,7 @@
       "note": "免费经济型文本模型，长上下文，适合批量改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-4V-Flash",
       "vision": true,
@@ -923,7 +923,7 @@
       "note": "免费视觉模型，能读课表截图并输出文字。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-5.3",
       "vision": false,
@@ -933,7 +933,7 @@
       "note": "旗舰纯文本模型，长上下文强推理，适合复杂改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-5.3-Flash",
       "vision": true,
@@ -943,7 +943,7 @@
       "note": "原生多模态 GLM，能读图改课表，速度快但需付费。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-5.3-Flash-Trial",
       "vision": true,
@@ -953,7 +953,7 @@
       "note": "GLM-5.3-Flash 试用版，多模态能读图，适合先试效果。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-5.3-Trial",
       "vision": false,
@@ -963,7 +963,7 @@
       "note": "GLM-5.3 试用版，纯文本强推理，可改课表但不读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "GLM-Z1-Flash",
       "vision": false,
@@ -973,7 +973,7 @@
       "note": "免费推理文本模型，适合复杂指令改课表，不能读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "THUDM/GLM-4-9B-0414",
       "vision": false,
@@ -983,7 +983,7 @@
       "note": "免费开源小模型，纯文本对话，轻量改课表够用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "zhipu",
       "providerLabel": "智谱",
       "id": "THUDM/GLM-Z1-9B-0414",
       "vision": false,
@@ -993,7 +993,7 @@
       "note": "免费开源推理小模型，纯文本，适合简单改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-fable-5-1",
       "vision": true,
@@ -1003,7 +1003,7 @@
       "note": "1M 上下文旗舰，复杂课表改写最稳，价格偏高，适合精修。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-haiku-4-5",
       "vision": true,
@@ -1013,7 +1013,7 @@
       "note": "轻量快速档，图片转课表够用，适合日常一句话改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-haiku-4-5-20251001",
       "vision": true,
@@ -1023,7 +1023,7 @@
       "note": "Haiku 4.5 快照版，速度优先、成本低，复杂表格易漏细节。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-opus-4-6",
       "vision": true,
@@ -1033,7 +1033,7 @@
       "note": "Opus 4.6 高端档，1M 上下文，复杂课表改写更稳但更贵。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-opus-4-7",
       "vision": true,
@@ -1043,7 +1043,7 @@
       "note": "Opus 4.7 推理更强，适合高难度课表纠错，响应偏慢。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-opus-4-8",
       "vision": true,
@@ -1053,7 +1053,7 @@
       "note": "顶级 Opus 档位，读复杂课表图片最可靠，价格最高。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-opus-5",
       "vision": true,
@@ -1063,7 +1063,7 @@
       "note": "Opus 5 旗舰，长上下文读大课表很稳，日常使用偏贵。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-opus-5-5",
       "vision": true,
@@ -1073,7 +1073,7 @@
       "note": "Opus 5.5 长程智能体档，超长课表也能吃下，成本最高。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-sonnet-4-5",
       "vision": true,
@@ -1083,7 +1083,7 @@
       "note": "Sonnet 4.5 均衡档，图片转课表与改课表都可用，性价比好。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-sonnet-4-6",
       "vision": true,
@@ -1093,7 +1093,7 @@
       "note": "Sonnet 4.6 主力档，1M 上下文，改课表准确度和成本平衡。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-sonnet-5",
       "vision": true,
@@ -1103,7 +1103,7 @@
       "note": "Sonnet 5 日常主力，图片转课表稳定，速度与价格均衡。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "anthropic",
       "providerLabel": "Anthropic",
       "id": "claude-sonnet-5-5",
       "vision": true,
@@ -1113,7 +1113,7 @@
       "note": "Sonnet 5.5 快速档，适合高频改课表，超复杂表格稍弱。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-5.6-luna",
       "vision": true,
@@ -1123,7 +1123,7 @@
       "note": "GPT-5.6 高性价比档，1.1M 上下文，快而便宜，适合批量改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-5.6-sol",
       "vision": true,
@@ -1133,7 +1133,7 @@
       "note": "GPT-5.6 前沿档，复杂课表改写更稳，适合精修，价格偏高。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-5.6-terra",
       "vision": true,
@@ -1143,7 +1143,7 @@
       "note": "GPT-5.6 均衡档，图片转课表与改课表兼顾，日常够用。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-6-astra",
       "vision": true,
@@ -1153,7 +1153,7 @@
       "note": "GPT-6 最强档，复杂推理读图最准，价格最高，适合精修。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-6-luna",
       "vision": true,
@@ -1163,7 +1163,7 @@
       "note": "GPT-6 高效档，响应快成本低，适合简单课表批量处理。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-6-sol",
       "vision": true,
@@ -1173,7 +1173,7 @@
       "note": "GPT-6 复杂编码智能体档，长课表改写稳，日常略贵。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-6.1-sol",
       "vision": true,
@@ -1183,7 +1183,7 @@
       "note": "GPT-6.1 低价近似 Astra，复杂课表改写兼顾成本，推荐日常。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "openai",
       "providerLabel": "OpenAI",
       "id": "gpt-6.1-terra",
       "vision": true,
@@ -1193,7 +1193,7 @@
       "note": "GPT-6.1 快速档，视觉推理不错，适合轻量、日常改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "chinatelecom",
       "providerLabel": "中国电信",
       "id": "XingChenAGI/Xing4.0-29B",
       "vision": false,
@@ -1203,7 +1203,7 @@
       "note": "免费对话模型，长上下文纯文本，适合一句话改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "chinatelecom",
       "providerLabel": "中国电信",
       "id": "XingChenAGI/XingChenASR-Diarize-V3.0",
       "vision": false,
@@ -1213,7 +1213,7 @@
       "note": "免费语音识别（含说话人分离），只吃音频，不能读图或改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "chinatelecom",
       "providerLabel": "中国电信",
       "id": "XingChenAGI/XingChenASR-V3.2",
       "vision": false,
@@ -1223,7 +1223,7 @@
       "note": "免费语音识别模型，只处理音频，不能读图或改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "chinatelecom",
       "providerLabel": "中国电信",
       "id": "XingChenAGI/XingChenASR-V3.2-Ultra",
       "vision": false,
@@ -1233,7 +1233,7 @@
       "note": "免费高精度语音识别模型，只处理音频，不能读图或改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "chinatelecom",
       "providerLabel": "中国电信",
       "id": "XingChenAGI/XingChenGSR-V1.0",
       "vision": false,
@@ -1243,7 +1243,7 @@
       "note": "免费声纹识别模型，只处理音频，不适合课表任务。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "baai",
       "providerLabel": "BAAI 智源",
       "id": "BAAI/bge-large-en-v1.5",
       "vision": false,
@@ -1253,7 +1253,7 @@
       "note": "英文向量嵌入模型，只做检索排序，不能对话或读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "baai",
       "providerLabel": "BAAI 智源",
       "id": "BAAI/bge-large-zh-v1.5",
       "vision": false,
@@ -1263,7 +1263,7 @@
       "note": "中文向量嵌入模型，只做语义检索，不能对话或读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "baai",
       "providerLabel": "BAAI 智源",
       "id": "BAAI/bge-m3",
       "vision": false,
@@ -1273,7 +1273,7 @@
       "note": "多语言向量嵌入模型，用于检索排序，不能对话或读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "baai",
       "providerLabel": "BAAI 智源",
       "id": "BAAI/bge-reranker-v2-m3",
       "vision": false,
@@ -1283,7 +1283,7 @@
       "note": "向量重排模型，只给检索结果打分，不能对话或读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "deepseek",
       "providerLabel": "DeepSeek",
       "id": "deepseek-ai/DeepSeek-OCR",
       "vision": true,
@@ -1293,7 +1293,7 @@
       "note": "OCR 专用，能读图但指令遵循弱，仅作图片转课表备选。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "deepseek",
       "providerLabel": "DeepSeek",
       "id": "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
       "vision": false,
@@ -1303,7 +1303,7 @@
       "note": "免费推理小模型，纯文本，能按指令改课表但不能读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "deepseek",
       "providerLabel": "DeepSeek",
       "id": "deepseek-v4-pro",
       "vision": false,
@@ -1313,7 +1313,7 @@
       "note": "旗舰长上下文模型，纯文本推理强，适合改课表但不读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "deepseek",
       "providerLabel": "DeepSeek",
       "id": "deepseek-v4.1-flash",
       "vision": false,
@@ -1323,7 +1323,7 @@
       "note": "轻量高速文本模型，改课表响应快，不能处理图片。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "xai",
       "providerLabel": "xAI",
       "id": "grok-4.3",
       "vision": true,
@@ -1333,7 +1333,7 @@
       "note": "xAI 多模态模型，读图转课表与一句话改课表都能胜任。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "xai",
       "providerLabel": "xAI",
       "id": "grok-4.5",
       "vision": true,
@@ -1343,7 +1343,7 @@
       "note": "500K 上下文多模态模型，适合复杂图片转课表与改写。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "xai",
       "providerLabel": "xAI",
       "id": "grok-4.6",
       "vision": true,
@@ -1353,7 +1353,7 @@
       "note": "前沿多模态模型，长文档读图稳，适合批量转课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "xai",
       "providerLabel": "xAI",
       "id": "grok-4.7",
       "vision": true,
@@ -1363,7 +1363,7 @@
       "note": "最新旗舰多模态，读图与改课表都强，价格相对更高。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "alibaba",
       "providerLabel": "阿里巴巴",
       "id": "FunAudioLLM/SenseVoiceSmall",
       "vision": false,
@@ -1373,7 +1373,7 @@
       "note": "语音识别模型，只处理音频，不能读图或改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "alibaba",
       "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen2.5-7B-Instruct",
       "vision": false,
@@ -1383,7 +1383,7 @@
       "note": "免费纯文本对话模型，能按指令改课表，不支持读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "alibaba",
       "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen3-8B",
       "vision": false,
@@ -1393,7 +1393,7 @@
       "note": "免费文本模型，指令遵循稳，适合改课表但不能读图。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "alibaba",
       "providerLabel": "阿里巴巴",
       "id": "Qwen/Qwen3.5-4B",
       "vision": true,
@@ -1403,7 +1403,7 @@
       "note": "免费多模态小模型，能读图转课表，也能改课表。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "kuaishou",
       "providerLabel": "快手",
       "id": "Kwai-Kolors/Kolors",
       "vision": false,
@@ -1413,7 +1413,7 @@
       "note": "生图模型，只产出图片，不能输出课表文本。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "baidu",
       "providerLabel": "百度",
       "id": "PaddlePaddle/PaddleOCR-VL-1.5",
       "vision": true,
@@ -1423,7 +1423,7 @@
       "note": "百度 OCR 专用模型，能读图但指令弱，仅作备选。"
     },
     {
-      "providerId": "cotton",
+      "providerId": "tencent",
       "providerLabel": "腾讯",
       "id": "tencent/Hunyuan-MT-7B",
       "vision": false,

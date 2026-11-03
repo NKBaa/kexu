@@ -31,9 +31,10 @@
   下载固定走内置加速镜像。
 - 顶层字段：`version`、`updatedAt`、`models`。
 - 每个模型字段：
-  - `providerId`：与 App 的服务商预设 id 对应（如 `siliconflow`、`zhipu`、`qwen`、`openai`、`deepseek`、`moonshot`、`cotton`）；
-  - `providerLabel`：展示名；
-  - `id`：服务商实际模型名；
+  - `providerId`：模型开发者 id（如 `google`、`anthropic`、`openai`、`zhipu`、`alibaba`、`nvidia`）；
+    同一开发者经不同中转站/网关提供时仍归到开发者，不写中转站名称；
+  - `providerLabel`：开发者展示名（如 `Google`、`NVIDIA`、`智谱`）；
+  - `id`：网关实际模型名，必须与「获取模型列表」返回的模型名逐字符一致（含 `openrouter/` 前缀、`:free` 后缀）；
   - `vision` / `text`：是否支持图片/文本；
   - `free`：是否免费；
   - `context`：上下文长度描述；
