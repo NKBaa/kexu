@@ -68,12 +68,7 @@ class _ScheduleBody extends ConsumerWidget {
         _WeekHeader(
           week: week,
           totalWeeks: totalWeeks,
-          onPrevious: week > 1
-              ? () => ref.read(currentWeekProvider.notifier).previous()
-              : null,
-          onNext: week < totalWeeks
-              ? () => ref.read(currentWeekProvider.notifier).next()
-              : null,
+          onTap: () => _pickWeek(context, ref, week, totalWeeks),
         ),
         const SizedBox(height: 12),
         for (var day = 1; day <= dayCount; day++) ...[
@@ -105,6 +100,39 @@ class _ScheduleBody extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _pickWeek(
+    BuildContext context,
+    WidgetRef ref,
+    int current,
+    int totalWeeks,
+  ) async {
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.sizeOf(ctx).height * 0.7,
+        child: ListView.builder(
+          itemCount: totalWeeks,
+          itemBuilder: (context, index) {
+            final week = index + 1;
+            return ListTile(
+              key: Key('schedule_week_picker_$week'),
+              leading: CircleAvatar(radius: 16, child: Text('$week')),
+              title: Text('第 $week 周'),
+              trailing: week == current
+                  ? Icon(Icons.check_circle, color: Theme.of(ctx).colorScheme.primary)
+                  : null,
+              onTap: () => Navigator.of(ctx).pop(week),
+            );
+          },
+        ),
+      ),
+    );
+    if (picked != null) {
+      ref.read(currentWeekProvider.notifier).setWeek(picked);
+    }
   }
 
   Widget _buildDay(
@@ -328,32 +356,27 @@ class _WeekHeader extends StatelessWidget {
   const _WeekHeader({
     required this.week,
     required this.totalWeeks,
-    required this.onPrevious,
-    required this.onNext,
+    required this.onTap,
   });
 
   final int week;
   final int totalWeeks;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            IconButton(
-              key: const Key('schedule_prev_week'),
-              tooltip: '上一周',
-              onPressed: onPrevious,
-              icon: const Icon(Icons.chevron_left),
-            ),
-            Expanded(
-              child: Column(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
                 children: [
                   Text(
                     '第 $week 周',
@@ -362,21 +385,17 @@ class _WeekHeader extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '共 $totalWeeks 周',
+                    '共 $totalWeeks 周 · 点此切换',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-            ),
-            IconButton(
-              key: const Key('schedule_next_week'),
-              tooltip: '下一周',
-              onPressed: onNext,
-              icon: const Icon(Icons.chevron_right),
-            ),
-          ],
+              const SizedBox(width: 2),
+              Icon(Icons.expand_more, size: 18, color: scheme.onSurfaceVariant),
+            ],
+          ),
         ),
       ),
     );

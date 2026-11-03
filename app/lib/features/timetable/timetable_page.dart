@@ -24,8 +24,6 @@ enum _TimetableMenuAction {
   share,
   data,
   tutorial,
-  previousWeek,
-  nextWeek,
 }
 
 /// 课表主视图。
@@ -467,21 +465,6 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
                 title: '重启教程',
                 value: _TimetableMenuAction.tutorial,
               ),
-              const Divider(height: 12),
-              item(
-                key: const Key('timetable_prev_week'),
-                icon: Icons.chevron_left,
-                title: '上一周',
-                value: _TimetableMenuAction.previousWeek,
-                enabled: week > 1,
-              ),
-              item(
-                key: const Key('timetable_next_week'),
-                icon: Icons.chevron_right,
-                title: '下一周',
-                value: _TimetableMenuAction.nextWeek,
-                enabled: week < totalWeeks,
-              ),
               const SizedBox(height: 8),
             ],
           ),
@@ -513,10 +496,6 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
         );
       case _TimetableMenuAction.tutorial:
         _openTutorial();
-      case _TimetableMenuAction.previousWeek:
-        ref.read(currentWeekProvider.notifier).previous();
-      case _TimetableMenuAction.nextWeek:
-        ref.read(currentWeekProvider.notifier).next();
     }
   }
 

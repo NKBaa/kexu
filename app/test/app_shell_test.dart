@@ -376,6 +376,8 @@ void main() {
     await tester.tap(find.byKey(const Key('timetable_more_button')));
     await tester.pumpAndSettle();
     expect(find.text('批量修改'), findsOneWidget);
+    expect(find.text('上一周'), findsNothing);
+    expect(find.text('下一周'), findsNothing);
     await tester.tap(find.byKey(const Key('timetable_batch_button')));
     await tester.pumpAndSettle();
     expect(find.text('高等数学'), findsWidgets);
@@ -386,6 +388,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('日程'), findsWidgets);
     expect(find.text('高等数学'), findsWidgets);
+    expect(find.text('上一周'), findsNothing);
+    expect(find.text('下一周'), findsNothing);
+
+    // 周次通过点标题选择，不再提供上一周/下一周按钮。
+    await tester.tap(find.text('第 1 周').first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('schedule_week_picker_2')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('schedule_week_picker_2')));
+    await tester.pumpAndSettle();
+    expect(find.text('第 2 周'), findsOneWidget);
   });
 
   testWidgets('切换到「设置」页签能正常渲染', (tester) async {
