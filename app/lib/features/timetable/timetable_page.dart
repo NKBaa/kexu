@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:showcaseview/showcaseview.dart';
 
 import '../../core/theme.dart';
 import '../../core/widgets/app_notice.dart';
@@ -14,7 +13,7 @@ import 'providers/timetable_provider.dart';
 import 'timetable_share_service.dart';
 import '../batch/batch_ops_page.dart';
 import '../editor/course_editor_page.dart';
-import '../onboarding/timetable_tour.dart';
+import '../onboarding/onboarding_wizard_page.dart';
 import '../settings/pages/data_settings_page.dart';
 import '../settings/providers/settings_provider.dart';
 import 'widgets/week_grid.dart';
@@ -124,12 +123,8 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
       appBar: AppBar(
         toolbarHeight: 92,
         titleSpacing: 16,
-        title: Showcase(
-          key: TimetableTutorialKeys.weekTitle,
-          title: '切换周次',
-          description: '点这里可以选周次；也可以左右滑动课表切换。',
-          child: InkWell(
-            key: const Key('timetable_week_title'),
+        title: InkWell(
+          key: const Key('timetable_week_title'),
           borderRadius: BorderRadius.circular(10),
           onTap: () => _pickWeek(context, ref, week, totalWeeks),
           child: Padding(
@@ -160,7 +155,6 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
             ),
           ),
         ),
-        ),
         actions: [
           // 回到本周放在顶栏；添加课程收进更多菜单。
           IconButton(
@@ -185,20 +179,15 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
             icon: const Icon(Icons.redo),
             onPressed: canRedo ? () => _redo(context, ref) : null,
           ),
-          Showcase(
-            key: TimetableTutorialKeys.moreButton,
-            title: '更多功能',
-            description: '添加课程、批量修改、分享、导入导出和交互教程都在这里。',
-            child: IconButton(
-              key: const Key('timetable_more_button'),
-              tooltip: '更多',
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () => _openMoreSheet(
-                context,
-                ref,
-                week: week,
-                totalWeeks: totalWeeks,
-              ),
+          IconButton(
+            key: const Key('timetable_more_button'),
+            tooltip: '更多',
+            icon: const Icon(Icons.more_horiz),
+            onPressed: () => _openMoreSheet(
+              context,
+              ref,
+              week: week,
+              totalWeeks: totalWeeks,
             ),
           ),
           const SizedBox(width: 4),
@@ -221,12 +210,7 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
                 final needHorizontalScroll = columnWidth < minColumnWidth;
                 if (needHorizontalScroll) columnWidth = minColumnWidth;
 
-                Widget grid = Showcase(
-                  key: TimetableTutorialKeys.grid,
-                  title: '课表手势',
-                  description: '长按空白处新增课程，按住拖动可选连续节次；'
-                      '长按课程卡片编辑，拖动右下角手柄调整时间。',
-                  child: WeekGrid(
+                Widget grid = WeekGrid(
                   timetable: timetable,
                   week: week,
                   today: now,
@@ -254,7 +238,6 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
                         end,
                         day,
                       ),
-                  ),
                 );
 
                 // 切周时让整块课表做一个轻量的横向滑入 + 淡入动效。
@@ -479,7 +462,7 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
               item(
                 key: const Key('timetable_tutorial_button'),
                 icon: Icons.touch_app_outlined,
-                title: '交互教程',
+                title: '使用教程',
                 value: _TimetableMenuAction.tutorial,
               ),
               const SizedBox(height: 8),
@@ -547,9 +530,11 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
   /// 长按课程：打开编辑页手动修改课程信息。
   /// 分享当前课表：日历文件（.ics）或完整 JSON 数据文件。
   Future<void> _openTutorial() async {
-    // 等底部面板收起，再高亮真实界面。
-    await Future<void>.delayed(const Duration(milliseconds: 260));
-    if (mounted) await startTimetableTour();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const OnboardingWizardPage(replay: true),
+      ),
+    );
   }
 
   Future<void> _openShareSheet(BuildContext context, WidgetRef ref) async {

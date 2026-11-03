@@ -10,7 +10,6 @@ import '../settings/providers/schedule_template_provider.dart';
 import '../settings/providers/settings_provider.dart';
 import '../settings/schedule_template_apply.dart';
 import '../../core/utils/holiday_utils.dart';
-import 'timetable_tour.dart';
 
 /// 首次使用向导：学校作息 → 大模型 API → 节假日 → 添加课程方式。
 class OnboardingWizardPage extends ConsumerStatefulWidget {
@@ -40,9 +39,6 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
       return;
     }
     await ref.read(settingsProvider.notifier).completeOnboarding();
-    if (!widget.replay) {
-      ref.read(timetableTourRequestProvider.notifier).state = true;
-    }
     if (mounted) setState(() => _finishing = false);
   }
 
@@ -619,7 +615,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         ),
         const SizedBox(height: 14),
         Text(
-          '完成后会自动进入交互教程；也可以稍后从课表「更多 → 交互教程」打开。',
+          '教程可随时从课表「更多 → 使用教程」回看。',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

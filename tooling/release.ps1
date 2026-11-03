@@ -6,7 +6,7 @@
 .DESCRIPTION
     流程：读版本号 → 校验 git / gh 环境 → 构建并归档到 dist/ → 用 gh CLI 创建 Release 并上传资产。
 
-    版本号以 app/pubspec.yaml 的 `version:` 为准（当前 1.2.32+88），tag 取语义化版本 v1.2.32；
+    版本号以 app/pubspec.yaml 的 `version:` 为准（当前 1.2.33+89），tag 取语义化版本 v1.2.33；
     app/lib/core/app_info.dart 必须与之同步（app/test/core/app_info_test.dart 会校验）。
     本脚本**只创建** Release，不会删除/覆盖已有 Release，也不会改动任何源码或 dist 之外的文件。
 
@@ -28,7 +28,7 @@
 
 .EXAMPLE
     pwsh -File tooling\release.ps1 -DryRun
-    pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.32.md
+    pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.33.md
     pwsh -File tooling\release.ps1 -SkipBuild -Repo your-name/kexu
 #>
 [CmdletBinding()]

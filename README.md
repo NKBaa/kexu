@@ -49,7 +49,7 @@
 5. **课表编辑与新增**：长按空白新增/拖拽选节次、长按课程编辑、拖动调整、撤销与重做。
 
 顶部「跳过」可随时完成向导；完成后不再自动弹出。
-课表「更多 → 交互教程」会在真实界面上高亮控件，跟着点即可。
+课表「更多 → 使用教程」可随时回看 5 步教程。
 
 ### 1. 精确表达不规律课表
 - **周次用显式列表存储**（如 `[1,2,3,5,6]`），而不是「起始周 + 单双周」这种有损压缩，
@@ -72,8 +72,8 @@
   拖卡片正文不会误触）。
 - **长按课表空白单元格**会在点击的星期与节次打开新增课程页，星期和节次已预填；
   **按住继续上下拖动**可一次选中连续几节，松开后按范围预填。
-- **交互教程**：课表「更多 → 交互教程」会在真实界面上高亮周次、更多、AI、课表网格，
-  可以直接点真实控件或点「下一步」；首次启动的「使用向导」负责学校/作息/大模型/节假日设置。
+- **使用教程**：课表「更多 → 使用教程」打开 5 步图文教程：
+  学校作息、大模型、节假日、添加课程方式、课表编辑与新增。
 - **冲突课程横向并排**：同一天里节次相交的课程自动分栏并排显示，不再纵向叠在一起互相遮挡；
   不相交的课程仍占满整列宽度。
 
@@ -192,7 +192,7 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
     下载目录默认在「下载\课序更新」。
   - **Android**：下载 `.apk` 后调起系统安装界面；当前环境不允许直接安装时
     （如没给「安装未知应用」权限），会**自动回退到浏览器打开 Release 页面**手动下载。
-- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.32+88`），
+- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.33+89`），
   App 内展示的版本由 `app/lib/core/app_info.dart` 统一提供，
   并有测试保证两者一致（见下方「发布新版本」）。
 - **只认正式版**：检查走 GitHub 的 `/releases/latest`，所以草稿（draft）与
@@ -292,7 +292,7 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
   - 左侧大号「第 N 周」+ 当天日期 `yyyy/M/d`，标题过长时自动缩放，不再省略；
   - 点标题打开周次选择，也可以左右滑动课表切换；
   - 右侧：回到本周 / 撤销 / 重做 / 更多；「更多」是带拖动条的底部面板，
-    含添加课程、批量修改、分享、导入导出、交互教程。
+    含添加课程、批量修改、分享、导入导出、使用教程。
   - 撤销/重做是 Word 式行为：只保留一条时间线，不再弹出「修改历史」列表；
     新的编辑会截断重做时间线。
   - 按钮 tooltip 与操作提示会带上细则，如「撤销：删除课程「高等数学」」；
@@ -405,17 +405,17 @@ lib/
 ### 已构建好的产物
 
 `tooling\build-all.ps1` 会把两个平台的产物按版本号归档到 `dist/`
-（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.32+88` → 文件名用 `v1.2.32`）。
+（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.33+89` → 文件名用 `v1.2.33`）。
 `dist/` 已在 `.gitignore` 里：**仓库只存源码，安装包作为 GitHub Release 资产上传**。
 
 | 平台 | 路径 | 说明 |
 |---|---|---|
-| Windows | `dist/windows/kexu-v1.2.32-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
-| Android | `dist/android/kexu-v1.2.32.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
+| Windows | `dist/windows/kexu-v1.2.33-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
+| Android | `dist/android/kexu-v1.2.33.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
 
-> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.32；
+> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.33；
 > 解压 zip 后直接双击 `course_timetable.exe` 即可运行。`dist/android/课表-v1.0.0.apk` 是历史版本，
-> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.32.apk`（归档文件名统一用 ASCII，
+> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.33.apk`（归档文件名统一用 ASCII，
 > 避免 gh CLI 上传时把中文文件名吃掉）。
 
 > 正式发布到应用商店前，请在 `app/android/app/build.gradle.kts` 里换成你自己的
@@ -492,7 +492,7 @@ pwsh -File tooling\build-all.ps1
 
 ```yaml
 # app/pubspec.yaml
-version: 1.2.32+88
+version: 1.2.33+89
 ```
 ```dart
 // app/lib/core/app_info.dart
@@ -508,8 +508,8 @@ pwsh -File tooling\build-all.ps1
 
 | 平台 | 路径 |
 |---|---|
-| Android | `dist/android/kexu-v1.2.32.apk` |
-| Windows | `dist/windows/kexu-v1.2.32-windows.zip`（整个 Release 目录压缩） |
+| Android | `dist/android/kexu-v1.2.33.apk` |
+| Windows | `dist/windows/kexu-v1.2.33-windows.zip`（整个 Release 目录压缩） |
 
 ### 3) 发布到 GitHub
 ```powershell
@@ -517,20 +517,20 @@ pwsh -File tooling\build-all.ps1
 pwsh -File tooling\release.ps1 -DryRun
 
 # 正式发布（默认会先构建；想复用已有 dist 资产就加 -SkipBuild）
-pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.32.md
+pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.33.md
 ```
 脚本做的事：校验 `-Version` 与 `pubspec.yaml` 一致 → 校验 git 仓库与 `gh` 登录状态 →
-（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.32 --title "课序 v1.2.32" ...`。
+（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.33 --title "课序 v1.2.33" ...`。
 它**不会**删除或覆盖已有 Release：同名 Release 已存在时直接报错退出，交给人决定。
 
 等价的手工命令（脚本内部就是这一条）：
 
 ```powershell
-gh release create v1.2.32 `
-  --title "课序 v1.2.32" `
-  --notes-file docs\release-notes-v1.2.32.md `
-  "dist\android\kexu-v1.2.32.apk" `
-  "dist\windows\kexu-v1.2.32-windows.zip"
+gh release create v1.2.33 `
+  --title "课序 v1.2.33" `
+  --notes-file docs\release-notes-v1.2.33.md `
+  "dist\android\kexu-v1.2.33.apk" `
+  "dist\windows\kexu-v1.2.33-windows.zip"
 ```
 
 > 仓库已初始化并推送到 **https://github.com/NKBaa/kexu**（`main` 分支，`origin` 已配好）。
@@ -544,10 +544,10 @@ App 用 GitHub API `GET /releases/latest` 取最新 Release，再按平台挑安
 
 - **Android**：只认 `.apk`；多个时优先文件名含 `android` / `arm64` / `universal` 的。
 - **Windows**：`.exe` 优先，其次 `.zip`；多个时优先含 `windows` / `win` / `setup` / `x64` 的。
-  所以 Windows 打包成 `kexu-v1.2.32-windows.zip` 能被正确匹配（名字里有 `windows`）；
+  所以 Windows 打包成 `kexu-v1.2.33-windows.zip` 能被正确匹配（名字里有 `windows`）；
   因为不是 `.exe`，下载后是「打开所在文件夹，解压后运行」。
 - 没有匹配资产时，更新页会提示「这个 Release 没有匹配当前平台的安装包」，可到 GitHub 手动下载。
-- 版本比较用 Release 的 **tag**（`v1.2.32`）与 App 内的 `1.2.32+88` 比较，**相等不算更新**。
+- 版本比较用 Release 的 **tag**（`v1.2.33`）与 App 内的 `1.2.33+89` 比较，**相等不算更新**。
 
 ### 5) 国内镜像与 GitHub API
 App 侧的镜像只做 URL 前缀拼接，不改变 API 语义：
