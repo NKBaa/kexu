@@ -5,7 +5,10 @@ import 'package:course_timetable/data/models/course.dart';
 import 'package:course_timetable/data/models/semester.dart';
 import 'package:course_timetable/data/models/timetable.dart';
 import 'package:course_timetable/data/models/update_config.dart';
+import 'package:course_timetable/data/models/schedule_event.dart';
+import 'package:course_timetable/data/repositories/schedule_event_repository.dart';
 import 'package:course_timetable/data/repositories/settings_repository.dart';
+import 'package:course_timetable/features/schedule/providers/schedule_events_provider.dart';
 import 'package:course_timetable/data/repositories/timetable_history_repository.dart';
 import 'package:course_timetable/data/repositories/timetable_repository.dart';
 import 'package:course_timetable/data/services/update_service.dart';
@@ -121,6 +124,18 @@ class InMemoryTimetableHistoryRepository extends TimetableHistoryRepository {
       entries.isEmpty ? null : entries.removeLast();
 }
 
+class InMemoryScheduleEventRepository extends ScheduleEventRepository {
+  List<ScheduleEvent> events = <ScheduleEvent>[];
+
+  @override
+  Future<List<ScheduleEvent>> load() async => List<ScheduleEvent>.of(events);
+
+  @override
+  Future<void> save(List<ScheduleEvent> events) async {
+    this.events = List<ScheduleEvent>.of(events);
+  }
+}
+
 /// 一份「不规律课表」样本：单周课 + 断续周次课。
 Timetable sampleTimetable() => Timetable(
       semester: Semester(
@@ -176,7 +191,11 @@ void main() {
     }
   }
 
-  Future<void> pumpApp(WidgetTester tester, {Timetable? seed}) async {
+  Future<void> pumpApp(
+    WidgetTester tester, {
+    Timetable? seed,
+    InMemoryScheduleEventRepository? scheduleRepo,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -186,6 +205,8 @@ void main() {
               .overrideWithValue(InMemorySettingsRepository()),
           timetableHistoryRepositoryProvider
               .overrideWithValue(InMemoryTimetableHistoryRepository()),
+          scheduleEventRepositoryProvider
+              .overrideWithValue(scheduleRepo ?? InMemoryScheduleEventRepository()),
           updateServiceProvider.overrideWithValue(_NoopUpdateService()),
         ],
         child: const CourseTimetableApp(),
@@ -204,6 +225,8 @@ void main() {
               .overrideWithValue(InMemorySettingsRepository()),
           timetableHistoryRepositoryProvider
               .overrideWithValue(InMemoryTimetableHistoryRepository()),
+          scheduleEventRepositoryProvider
+              .overrideWithValue(InMemoryScheduleEventRepository()),
           updateServiceProvider.overrideWithValue(_NoopUpdateService()),
         ],
         child: MaterialApp(theme: AppTheme.dark(), home: const HomeShell()),
@@ -366,12 +389,17 @@ void main() {
     expect(find.byType(NavigationRail), findsOneWidget);
   });
 
-  testWidgets('批量修改收在更多菜单，日程页签列出课程', (tester) async {
+  testWidgets('批量修改收在更多菜单，日程页签显示月历', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    await pumpApp(tester, seed: sampleTimetable());
+    final scheduleRepo = InMemoryScheduleEventRepository();
+    await pumpApp(
+      tester,
+      seed: sampleTimetable(),
+      scheduleRepo: scheduleRepo,
+    );
 
     await tester.tap(find.byKey(const Key('timetable_more_button')));
     await tester.pumpAndSettle();
@@ -387,17 +415,22 @@ void main() {
     await tester.tap(find.text('日程'));
     await tester.pumpAndSettle();
     expect(find.text('日程'), findsWidgets);
-    expect(find.text('高等数学'), findsWidgets);
-    expect(find.text('上一周'), findsNothing);
-    expect(find.text('下一周'), findsNothing);
+    expect(find.byKey(const Key('schedule_add_button')), findsOneWidget);
+    expect(find.byKey(const Key('schedule_ai_button')), findsOneWidget);
 
-    // 周次通过点标题选择，不再提供上一周/下一周按钮。
-    await tester.tap(find.text('第 1 周').first);
+    await tester.tap(find.byKey(const Key('schedule_add_button')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('schedule_week_picker_2')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('schedule_week_picker_2')));
+    await tester.enterText(
+      find.byKey(const Key('schedule_event_title')),
+      '交高数作业',
+    );
+    await tester.tap(find.byKey(const Key('schedule_event_save')));
     await tester.pumpAndSettle();
-    expect(find.text('第 2 周'), findsOneWidget);
+    await tester.drag(find.byKey(const Key('schedule_list')), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    expect(scheduleRepo.events, hasLength(1));
+    expect(scheduleRepo.events.single.title, '交高数作业');
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('切换到「设置」页签能正常渲染', (tester) async {

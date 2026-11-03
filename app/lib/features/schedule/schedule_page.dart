@@ -1,402 +1,394 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/utils/holiday_utils.dart';
 import '../../core/utils/week_utils.dart';
-import '../../data/models/holiday.dart';
-import '../../data/models/semester.dart';
-import '../../data/models/timetable.dart';
-import '../editor/course_editor_page.dart';
-import '../settings/providers/settings_provider.dart';
-import '../timetable/providers/timetable_provider.dart';
+import '../../core/widgets/app_notice.dart';
+import '../../data/models/schedule_event.dart';
+import 'providers/schedule_events_provider.dart';
+import 'schedule_ai_sheet.dart';
+import 'schedule_event_editor_page.dart';
 
-/// 日程页：按天列出当前教学周的课程，适合快速看「今天/明天有什么课」。
-class SchedulePage extends ConsumerWidget {
+/// 日程页：月历 + 当天事项。
+///
+/// 与课表无关：这里记录考试、作业截止、活动、会议等个人日程，
+/// 支持手动新建/编辑/删除，也支持用 AI 从一句话解析。
+class SchedulePage extends ConsumerStatefulWidget {
   const SchedulePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(timetableProvider);
+  ConsumerState<SchedulePage> createState() => _SchedulePageState();
+}
+
+class _SchedulePageState extends ConsumerState<SchedulePage> {
+  late DateTime _month;
+  late DateTime _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _month = DateTime(now.year, now.month);
+    _selected = DateTime(now.year, now.month, now.day);
+  }
+
+  Future<void> _openEditor({ScheduleEvent? event}) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => ScheduleEventEditorPage(
+          initialDate: _selected,
+          initial: event,
+        ),
+      ),
+    );
+    if (changed == true && mounted) {
+      showAppNotice(context, event == null ? '日程已添加' : '日程已更新');
+    }
+  }
+
+  Future<void> _openAi() async {
+    final changed = await showScheduleAiSheet(context);
+    if (changed && mounted) {
+      showAppNotice(context, 'AI 日程已添加');
+    }
+  }
+
+  void _goToday() {
+    final now = DateTime.now();
+    setState(() {
+      _month = DateTime(now.year, now.month);
+      _selected = DateTime(now.year, now.month, now.day);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(scheduleEventsProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('日程'),
         actions: [
           IconButton(
+            key: const Key('schedule_ai_button'),
+            tooltip: '用 AI 添加日程',
+            onPressed: _openAi,
+            icon: const Icon(Icons.auto_awesome),
+          ),
+          IconButton(
             key: const Key('schedule_today_button'),
-            tooltip: '回到本周',
+            tooltip: '回到今天',
+            onPressed: _goToday,
             icon: const Icon(Icons.today_outlined),
-            onPressed: () {
-              final week = ref.read(academicWeekProvider);
-              if (week >= 1) {
-                ref.read(currentWeekProvider.notifier).setWeek(week);
-              }
-            },
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        key: const Key('schedule_add_button'),
+        heroTag: 'schedule_add_fab',
+        onPressed: () => _openEditor(),
+        icon: const Icon(Icons.add),
+        label: const Text('日程'),
+      ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('读取课表失败：$e')),
-        data: (timetable) => _ScheduleBody(timetable: timetable),
+        error: (e, st) => Center(child: Text('读取日程失败：$e')),
+        data: (events) => ListView(
+          key: const Key('schedule_list'),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+          children: [
+            _MonthHeader(
+              month: _month,
+              onPrevious: () => setState(
+                () => _month = DateTime(_month.year, _month.month - 1),
+              ),
+              onNext: () => setState(
+                () => _month = DateTime(_month.year, _month.month + 1),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _MonthGrid(
+              month: _month,
+              selected: _selected,
+              events: events,
+              onSelect: (date) => setState(() => _selected = date),
+            ),
+            const SizedBox(height: 16),
+            _SelectedDayHeader(
+              date: _selected,
+              onAdd: () => _openEditor(),
+            ),
+            const SizedBox(height: 8),
+            _buildDayEvents(events),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildDayEvents(List<ScheduleEvent> events) {
+    final key = ScheduleEvent.formatDateKey(_selected);
+    final dayEvents = events.where((e) => e.dateKey == key).toList()
+      ..sort((a, b) => (a.startTime ?? '').compareTo(b.startTime ?? ''));
+    final theme = Theme.of(context);
+    if (dayEvents.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: Text(
+              '这一天还没有日程。\n点右下角「日程」或右上角 AI 添加。',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.6,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final event in dayEvents) ...[
+          _EventCard(
+            event: event,
+            onTap: () => _openEditor(event: event),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ],
     );
   }
 }
 
-class _ScheduleBody extends ConsumerWidget {
-  const _ScheduleBody({required this.timetable});
+class _MonthHeader extends StatelessWidget {
+  const _MonthHeader({
+    required this.month,
+    required this.onPrevious,
+    required this.onNext,
+  });
 
-  final Timetable timetable;
+  final DateTime month;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final settings = ref.watch(settingsProvider).valueOrNull;
-    final totalWeeks = timetable.semester.totalWeeks > 0
-        ? timetable.semester.totalWeeks
-        : 16;
-    final week = ref.watch(currentWeekProvider).clamp(1, totalWeeks);
-    final showWeekend = settings?.showWeekend ?? true;
-    final holidays = settings?.holidays ?? const [];
-    final dayCount = showWeekend ? 7 : 5;
-    final today = DateTime.now();
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    return Row(
       children: [
-        _WeekHeader(
-          week: week,
-          totalWeeks: totalWeeks,
-          onTap: () => _pickWeek(context, ref, week, totalWeeks),
+        IconButton(
+          key: const Key('schedule_prev_month'),
+          tooltip: '上个月',
+          onPressed: onPrevious,
+          icon: const Icon(Icons.chevron_left),
         ),
-        const SizedBox(height: 12),
-        for (var day = 1; day <= dayCount; day++) ...[
-          _buildDay(
-            context,
-            ref,
-            timetable: timetable,
-            week: week,
-            day: day,
-            date: dateOfWeekDay(timetable.semester.startMonday, week, day),
-            holiday: holidayForDate(
-              holidays,
-              dateOfWeekDay(timetable.semester.startMonday, week, day),
-            ),
-            isToday: week == weekOfDate(today, timetable.semester.startMonday) &&
-                day == today.weekday,
-            slots: timetable.slotsForDate(
-              dateOfWeekDay(timetable.semester.startMonday, week, day),
+        Expanded(
+          child: Text(
+            '${month.year} 年 ${month.month} 月',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
-          if (day != dayCount) const SizedBox(height: 10),
-        ],
-        const SizedBox(height: 12),
-        Text(
-          '日程只显示当前教学周；点课程可进入编辑页。',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant,
-          ),
+        ),
+        IconButton(
+          key: const Key('schedule_next_month'),
+          tooltip: '下个月',
+          onPressed: onNext,
+          icon: const Icon(Icons.chevron_right),
         ),
       ],
     );
   }
+}
 
-  Future<void> _pickWeek(
-    BuildContext context,
-    WidgetRef ref,
-    int current,
-    int totalWeeks,
-  ) async {
-    final picked = await showModalBottomSheet<int>(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) => SizedBox(
-        height: MediaQuery.sizeOf(ctx).height * 0.7,
-        child: ListView.builder(
-          itemCount: totalWeeks,
+class _MonthGrid extends StatelessWidget {
+  const _MonthGrid({
+    required this.month,
+    required this.selected,
+    required this.events,
+    required this.onSelect,
+  });
+
+  final DateTime month;
+  final DateTime selected;
+  final List<ScheduleEvent> events;
+  final ValueChanged<DateTime> onSelect;
+
+  static const List<String> _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final first = DateTime(month.year, month.month, 1);
+    final offset = first.weekday - 1;
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final cells = ((offset + daysInMonth + 6) ~/ 7) * 7;
+    final today = DateTime.now();
+    final todayKey = ScheduleEvent.formatDateKey(today);
+    final eventKeys = {for (final e in events) e.dateKey};
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            for (final name in _weekdays)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    name,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: cells,
           itemBuilder: (context, index) {
-            final week = index + 1;
-            return ListTile(
-              key: Key('schedule_week_picker_$week'),
-              leading: CircleAvatar(radius: 16, child: Text('$week')),
-              title: Text('第 $week 周'),
-              trailing: week == current
-                  ? Icon(Icons.check_circle, color: Theme.of(ctx).colorScheme.primary)
-                  : null,
-              onTap: () => Navigator.of(ctx).pop(week),
+            final day = index - offset + 1;
+            if (day < 1 || day > daysInMonth) {
+              return const SizedBox.shrink();
+            }
+            final date = DateTime(month.year, month.month, day);
+            final key = ScheduleEvent.formatDateKey(date);
+            final isSelected = key == ScheduleEvent.formatDateKey(selected);
+            final isToday = key == todayKey;
+            final hasEvents = eventKeys.contains(key);
+            return InkWell(
+              key: Key('schedule_day_$key'),
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => onSelect(date),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? scheme.primaryContainer
+                      : (isToday
+                          ? scheme.primary.withValues(alpha: 0.08)
+                          : null),
+                  borderRadius: BorderRadius.circular(12),
+                  border: isToday && !isSelected
+                      ? Border.all(color: scheme.primary, width: 1)
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$day',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight:
+                            isSelected || isToday ? FontWeight.w800 : null,
+                        color: isSelected
+                            ? scheme.onPrimaryContainer
+                            : (isToday ? scheme.primary : null),
+                      ),
+                    ),
+                    if (hasEvents)
+                      Container(
+                        width: 5,
+                        height: 5,
+                        margin: const EdgeInsets.only(top: 3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isSelected ? scheme.primary : scheme.tertiary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             );
           },
         ),
-      ),
-    );
-    if (picked != null) {
-      ref.read(currentWeekProvider.notifier).setWeek(picked);
-    }
-  }
-
-  Widget _buildDay(
-    BuildContext context,
-    WidgetRef ref, {
-    required Timetable timetable,
-    required int week,
-    required int day,
-    required DateTime date,
-    required Holiday? holiday,
-    required bool isToday,
-    required List<TimeSlot> slots,
-  }) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final entries = timetable.entriesAt(week, day);
-    final slotByPeriod = {for (final s in slots) s.period: s};
-    final isHoliday = holiday != null;
-
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isToday ? scheme.primary : scheme.outlineVariant,
-          width: isToday ? 1.6 : 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isToday
-                        ? scheme.primaryContainer
-                        : scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${date.month}/${date.day}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isToday
-                              ? scheme.onPrimaryContainer
-                              : scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            weekdayName(day),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          if (isToday) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: scheme.primary,
-                                borderRadius: BorderRadius.circular(99),
-                              ),
-                              child: Text(
-                                '今天',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: scheme.onPrimary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      Text(
-                        isHoliday
-                            ? '节假日 · ${holiday.name}'
-                            : '${entries.length} 个时段',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: isHoliday
-                              ? scheme.error
-                              : scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (isHoliday)
-              Text(
-                '放假，不排课。',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              )
-            else if (entries.isEmpty)
-              Text(
-                '没有课',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              )
-            else
-              for (final entry in entries) ...[
-                _CourseRow(
-                  entry: entry,
-                  startSlot: slotByPeriod[entry.session.startPeriod],
-                  endSlot: slotByPeriod[entry.session.endPeriod],
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => CourseEditorPage(course: entry.course),
-                    ),
-                  ),
-                ),
-                if (entry != entries.last) const Divider(height: 10),
-              ],
-          ],
-        ),
-      ),
+      ],
     );
   }
 }
 
-class _CourseRow extends StatelessWidget {
-  const _CourseRow({
-    required this.entry,
-    required this.startSlot,
-    required this.endSlot,
-    required this.onTap,
-  });
+class _SelectedDayHeader extends StatelessWidget {
+  const _SelectedDayHeader({required this.date, required this.onAdd});
 
-  final SessionEntry entry;
-  final TimeSlot? startSlot;
-  final TimeSlot? endSlot;
-  final VoidCallback onTap;
+  final DateTime date;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final time = startSlot == null || endSlot == null
-        ? '第 ${entry.session.startPeriod}-${entry.session.endPeriod} 节'
-        : '${startSlot!.start}-${endSlot!.end}';
-    final meta = [
-      if (entry.course.teacher?.trim().isNotEmpty == true)
-        entry.course.teacher!,
-      if (entry.session.location?.trim().isNotEmpty == true)
-        entry.session.location!,
-    ].join(' · ');
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 76,
-              child: Text(
-                time,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.course.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (meta.isNotEmpty)
-                    Text(
-                      meta,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WeekHeader extends StatelessWidget {
-  const _WeekHeader({
-    required this.week,
-    required this.totalWeeks,
-    required this.onTap,
-  });
-
-  final int week;
-  final int totalWeeks;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                children: [
-                  Text(
-                    '第 $week 周',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    '共 $totalWeeks 周 · 点此切换',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 2),
-              Icon(Icons.expand_more, size: 18, color: scheme.onSurfaceVariant),
-            ],
+    return Row(
+      children: [
+        Text(
+          '${date.month} 月 ${date.day} 日 · ${weekdayName(date.weekday)}',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
           ),
         ),
+        const Spacer(),
+        TextButton.icon(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('添加'),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventCard extends StatelessWidget {
+  const _EventCard({required this.event, required this.onTap});
+
+  final ScheduleEvent event;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final time = event.allDay
+        ? '全天'
+        : '${event.startTime}${event.endTime == null ? '' : '-${event.endTime}'}';
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 52,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: scheme.tertiaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              time,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onTertiaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        title: Text(event.title),
+        subtitle: event.note.isEmpty
+            ? null
+            : Text(
+                event.note,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }

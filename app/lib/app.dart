@@ -451,6 +451,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               key: const Key('home_ai_fab'),
               child: FloatingActionButton.extended(
                 key: _aiFabKey,
+                heroTag: 'ai_assistant_fab',
                 onPressed: _openAiEdit,
                 icon: const Icon(Icons.auto_awesome),
                 label: const Text('AI'),
