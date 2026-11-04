@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:course_timetable/data/models/ai_config.dart';
 import 'package:course_timetable/data/models/app_settings.dart';
 import 'package:course_timetable/data/models/course.dart';
+import 'package:course_timetable/data/models/schedule_event.dart';
 import 'package:course_timetable/data/models/semester.dart';
 import 'package:course_timetable/data/models/timetable.dart';
+import 'package:course_timetable/data/repositories/schedule_event_repository.dart';
 import 'package:course_timetable/features/ai/ai_client.dart';
 import 'package:course_timetable/features/ai/ai_client_provider.dart';
 import 'package:course_timetable/features/ai/ai_edit_page.dart';
+import 'package:course_timetable/features/schedule/providers/schedule_events_provider.dart';
 import 'package:course_timetable/features/settings/providers/settings_provider.dart';
 import 'package:course_timetable/features/timetable/providers/timetable_provider.dart';
 import 'package:flutter/material.dart';
@@ -82,6 +85,18 @@ class _FakeSettingsController extends SettingsController {
   }
 }
 
+class _InMemoryScheduleEventRepository extends ScheduleEventRepository {
+  List<ScheduleEvent> events = <ScheduleEvent>[];
+
+  @override
+  Future<List<ScheduleEvent>> load() async => List<ScheduleEvent>.of(events);
+
+  @override
+  Future<void> save(List<ScheduleEvent> events) async {
+    this.events = List<ScheduleEvent>.of(events);
+  }
+}
+
 http.Response _chatResponse(String content) => http.Response.bytes(
       utf8.encode(jsonEncode({
         'choices': [
@@ -109,12 +124,15 @@ Widget _wrap({
   required _FakeTimetableController timetable,
   required _FakeSettingsController settings,
   required AiClient client,
+  _InMemoryScheduleEventRepository? scheduleRepo,
 }) {
   return ProviderScope(
     overrides: [
       timetableProvider.overrideWith(() => timetable),
       settingsProvider.overrideWith(() => settings),
       textAiClientProvider.overrideWithValue(client),
+      scheduleEventRepositoryProvider
+          .overrideWithValue(scheduleRepo ?? _InMemoryScheduleEventRepository()),
     ],
     child: MaterialApp(
       theme: ThemeData(useMaterial3: true),
@@ -216,7 +234,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('ai_edit_send')));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('请先描述你想怎么改课表'), findsOneWidget);
+    expect(find.textContaining('请先描述要改的课表或要添加的日程'), findsOneWidget);
     expect(requests, isEmpty);
   });
 
@@ -293,5 +311,40 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('ai_edit_add_image')), findsOneWidget);
+  });
+
+  testWidgets('同一个 AI 窗口可以解析并添加日程', (tester) async {
+    _bigWindow(tester);
+    final repo = _InMemoryScheduleEventRepository();
+    await tester.pumpWidget(
+      _wrap(
+        timetable: _FakeTimetableController(_seed()),
+        settings: _FakeSettingsController(_configuredSettings),
+        scheduleRepo: repo,
+        client: AiClient(
+          config: _textConfig,
+          httpClient: _sequenceClient([
+            '{"events":[{"title":"交高数作业","date":"2025-09-02",'
+                '"startTime":"15:00","endTime":null,"note":"教三 201"}]}',
+          ], <http.Request>[]),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('ai_edit_input')),
+      '明天下午 3 点交高数作业',
+    );
+    await tester.tap(find.byKey(const ValueKey('ai_edit_send')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('ai_schedule_plan_card')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('ai_schedule_apply')));
+    await tester.pumpAndSettle();
+
+    expect(repo.events, hasLength(1));
+    expect(repo.events.single.title, '交高数作业');
+    await tester.pump(const Duration(seconds: 2));
   });
 }

@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/week_utils.dart';
 import '../../core/widgets/app_notice.dart';
 import '../../data/models/schedule_event.dart';
+import '../ai/ai_edit_page.dart';
 import 'providers/schedule_events_provider.dart';
-import 'schedule_ai_sheet.dart';
 import 'schedule_event_editor_page.dart';
 
 /// 日程页：月历 + 当天事项。
@@ -46,10 +46,9 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   }
 
   Future<void> _openAi() async {
-    final changed = await showScheduleAiSheet(context);
-    if (changed && mounted) {
-      showAppNotice(context, 'AI 日程已添加');
-    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const AiEditPage()),
+    );
   }
 
   void _goToday() {
@@ -69,7 +68,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         actions: [
           IconButton(
             key: const Key('schedule_ai_button'),
-            tooltip: '用 AI 添加日程',
+            tooltip: '打开 AI 助手（课表 / 日程）',
             onPressed: _openAi,
             icon: const Icon(Icons.auto_awesome),
           ),

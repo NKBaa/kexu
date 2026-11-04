@@ -545,7 +545,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('课序 AI'), findsOneWidget);
-    expect(find.textContaining('一句话改课表'), findsWidgets);
+    expect(find.textContaining('改课表 · 加日程'), findsWidgets);
   });
 
   testWidgets('非课表页签不显示 AI 悬浮按钮', (tester) async {

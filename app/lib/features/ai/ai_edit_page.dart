@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/widgets/app_notice.dart';
 import '../../data/models/ai_ops.dart';
+import '../../data/models/schedule_event.dart';
 import '../../data/models/timetable.dart';
 import '../../data/services/ai_apply_service.dart';
+import '../schedule/providers/schedule_events_provider.dart';
+import '../schedule/schedule_event_ai.dart';
 import '../settings/providers/settings_provider.dart';
 import '../timetable/providers/timetable_provider.dart';
 import 'ai_client.dart';
@@ -32,7 +35,7 @@ class AiEditPage extends ConsumerStatefulWidget {
 }
 
 /// 对话里一条记录的类型。
-enum _EntryKind { user, assistant, plan, report, error }
+enum _EntryKind { user, assistant, plan, schedulePlan, report, error }
 
 /// 对话记录条目。
 class _ChatEntry {
@@ -42,6 +45,7 @@ class _ChatEntry {
     this.options = const <String>[],
     this.images = const <AiImageAttachment>[],
     this.plan,
+    this.events = const <ScheduleEvent>[],
     this.report,
   });
 
@@ -57,6 +61,13 @@ class _ChatEntry {
   factory _ChatEntry.plan(AiEditPlan plan) =>
       _ChatEntry._(kind: _EntryKind.plan, text: plan.summary, plan: plan);
 
+  factory _ChatEntry.schedulePlan(List<ScheduleEvent> events) =>
+      _ChatEntry._(
+        kind: _EntryKind.schedulePlan,
+        text: '日程方案',
+        events: events,
+      );
+
   factory _ChatEntry.report(ApplyReport report) =>
       _ChatEntry._(kind: _EntryKind.report, text: report.summary, report: report);
 
@@ -67,6 +78,7 @@ class _ChatEntry {
   final List<String> options;
   final List<AiImageAttachment> images;
   final AiEditPlan? plan;
+  final List<ScheduleEvent> events;
   final ApplyReport? report;
 
   /// 方案卡片里被勾选的操作下标。
@@ -97,9 +109,9 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
   static const List<String> _examples = <String>[
     '把明天的课都挪到下周',
     '高数改成单双周都上',
-    '周三下午的课换到周四上午',
     '第 3 节改成 10:05 上课',
-    '下午的课整体推迟 10 分钟',
+    '明天下午 3 点交高数作业',
+    '下个月 5 号报名截止',
   ];
 
   @override
@@ -160,7 +172,7 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
     final images = List<AiImageAttachment>.of(_images);
     var text = instruction.trim();
     if (text.isEmpty && images.isEmpty) {
-      _addError('请先描述你想怎么改课表，例如「把明天的课都挪到下周」。');
+      _addError('请先描述要改的课表或要添加的日程，例如「把明天的课挪到下周」。');
       return;
     }
     if (text.isEmpty) text = '根据这张图片帮我调整课表。';
@@ -185,6 +197,14 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
     }
     if (images.isNotEmpty && !textConfigured && !visionConfigured) {
       _addError('还没有配置模型。请到「设置 → 大模型配置」里配置语言模型或识图模型。');
+      return;
+    }
+
+    // 同一个 AI 窗口同时处理「改课表」和「加日程」。
+    final wantsSchedule =
+        images.isEmpty && _looksLikeSchedule(text) && !_looksLikeTimetable(text);
+    if (wantsSchedule) {
+      await _submitSchedule(text);
       return;
     }
 
@@ -241,6 +261,51 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
       setState(() {
         _busy = false;
         _entries.add(_ChatEntry.error('生成方案失败：$e'));
+      });
+    }
+    _scrollToBottom();
+  }
+
+  static final RegExp _scheduleWords = RegExp(
+    '日程|考试|作业|截止|报名|活动|会议|开会|例会|讲座|聚会|聚餐|约会|'
+    '生日|纪念日|提醒|缴费|交表|打卡|面试|比赛|答辩|体检|值日|班会|'
+    '取快递|还书|复习',
+  );
+  static final RegExp _timetableWords = RegExp(
+    '课表|课程|节|周次|学期|作息|教室|老师|教师|上课|调课|停课|补课',
+  );
+
+  bool _looksLikeSchedule(String text) => _scheduleWords.hasMatch(text);
+  bool _looksLikeTimetable(String text) => _timetableWords.hasMatch(text);
+
+  Future<void> _submitSchedule(String text) async {
+    setState(() {
+      _busy = true;
+      _busyText = '正在整理日程…';
+      _entries.add(_ChatEntry.user(text));
+      _inputCtrl.clear();
+    });
+    _scrollToBottom();
+    try {
+      final events = await ScheduleEventAiService(
+        client: ref.read(textAiClientProvider),
+      ).plan(text);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _entries.add(_ChatEntry.schedulePlan(events));
+      });
+    } on AiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _entries.add(_ChatEntry.error(e.message));
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _entries.add(_ChatEntry.error('整理日程失败：$e'));
       });
     }
     _scrollToBottom();
@@ -311,6 +376,20 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
     showAppNotice(context, report.summary);
   }
 
+  Future<void> _applySchedule(_ChatEntry entry) async {
+    if (entry.applied || _applying || entry.events.isEmpty) return;
+    setState(() => _applying = true);
+    await ref.read(scheduleEventsProvider.notifier).addEvents(entry.events);
+    if (!mounted) return;
+    setState(() {
+      _applying = false;
+      entry.applied = true;
+      _entries.add(_ChatEntry.assistant('已添加 ${entry.events.length} 个日程。'));
+    });
+    _scrollToBottom();
+    showAppNotice(context, '已添加 ${entry.events.length} 个日程');
+  }
+
   void _clear() {
     if (_busy || _applying) return;
     setState(() {
@@ -360,7 +439,7 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
               style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.4),
             ),
             Text(
-              '一句话改课表 · 也可以发图片',
+              '改课表 · 加日程 · 也可以发图片',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -545,8 +624,8 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
         ),
         const SizedBox(height: 6),
         Text(
-          '不用找菜单。说「把明天的课挪到下周」，或者发一张课表截图，'
-          'AI 会先整理成方案，你确认后再改。',
+          '不用找菜单。说「把明天的课挪到下周」，或者「明天下午 3 点交作业」，'
+          'AI 会先整理成方案，你确认后再改课表或加日程。',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
@@ -608,6 +687,8 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
         return _buildAssistantBubble(entry);
       case _EntryKind.plan:
         return _buildPlanCard(entry);
+      case _EntryKind.schedulePlan:
+        return _buildSchedulePlanCard(entry);
       case _EntryKind.report:
         return _buildReportCard(entry.report!);
       case _EntryKind.error:
@@ -754,6 +835,73 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
               Text(_busyText, style: theme.textTheme.bodySmall),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSchedulePlanCard(_ChatEntry entry) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _glass(
+        key: const ValueKey('ai_schedule_plan_card'),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.event_note_outlined, color: scheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  '日程方案（${entry.events.length} 项）',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            for (final event in entry.events)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.event_outlined, size: 20),
+                title: Text(event.title),
+                subtitle: Text(
+                  '${event.dateKey}'
+                  '${event.allDay ? ' · 全天' : ' · ${event.startTime}${event.endTime == null ? '' : '-${event.endTime}'}'}'
+                  '${event.note.isEmpty ? '' : ' · ${event.note}'}',
+                ),
+              ),
+            const SizedBox(height: 4),
+            if (entry.applied)
+              Row(
+                children: [
+                  Icon(Icons.check_circle, size: 18, color: scheme.primary),
+                  const SizedBox(width: 6),
+                  const Text('已添加'),
+                ],
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  key: const ValueKey('ai_schedule_apply'),
+                  onPressed: _applying ? null : () => _applySchedule(entry),
+                  icon: _applying
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check),
+                  label: Text('添加 ${entry.events.length} 个日程'),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -1013,7 +1161,7 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
                     style: theme.textTheme.bodyMedium,
                     decoration: InputDecoration(
                       hintText: _images.isEmpty
-                          ? '说一句话，或发一张课表图片…'
+                          ? '改课表、加日程，或发一张课表图片…'
                           : '可以补充一句图片要改什么…',
                       isDense: true,
                       filled: true,
