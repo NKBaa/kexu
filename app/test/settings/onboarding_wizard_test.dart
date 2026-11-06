@@ -2,12 +2,30 @@ import 'package:course_timetable/core/theme.dart';
 import 'package:course_timetable/data/models/app_settings.dart';
 import 'package:course_timetable/data/models/bell_schedule_template.dart';
 import 'package:course_timetable/data/models/semester.dart';
+import 'package:course_timetable/data/models/timetable.dart';
 import 'package:course_timetable/features/onboarding/onboarding_wizard_page.dart';
 import 'package:course_timetable/features/settings/providers/schedule_template_provider.dart';
 import 'package:course_timetable/features/settings/providers/settings_provider.dart';
+import 'package:course_timetable/features/timetable/providers/timetable_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+Timetable _seedTimetable() => Timetable(
+      semester: Semester(
+        id: 's1',
+        name: '2025 秋季学期',
+        startMonday: DateTime(2025, 9, 1),
+        totalWeeks: 16,
+      ),
+      timeSlots: defaultTimeSlots(),
+      courses: const [],
+    );
+
+class _FakeTimetableController extends TimetableController {
+  @override
+  Future<Timetable> build() async => _seedTimetable();
+}
 
 class _FakeSettingsController extends SettingsController {
   _FakeSettingsController(this.current);
@@ -50,6 +68,7 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith(() => settings),
+          timetableProvider.overrideWith(() => _FakeTimetableController()),
           scheduleTemplateCatalogProvider.overrideWith((ref) async => catalog),
         ],
         child: MaterialApp(
@@ -60,8 +79,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('选择学校设置作息'), findsOneWidget);
+    expect(find.text('设置学期与作息'), findsOneWidget);
     expect(find.text('测试大学'), findsOneWidget);
+    expect(find.byKey(const Key('onboarding_open_semester')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('onboarding_next')));
     await tester.pumpAndSettle();
@@ -96,6 +116,7 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith(() => settings),
+          timetableProvider.overrideWith(() => _FakeTimetableController()),
           scheduleTemplateCatalogProvider.overrideWith(
             (ref) async => const BellScheduleTemplateCatalog(schools: []),
           ),
@@ -148,6 +169,7 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith(() => settings),
+          timetableProvider.overrideWith(() => _FakeTimetableController()),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -167,12 +189,49 @@ void main() {
     expect(find.text('完成教程'), findsOneWidget);
   });
 
+  testWidgets('向导的节假日入口打开「学期与作息」', (tester) async {
+    final settings = _FakeSettingsController(const AppSettings());
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith(() => settings),
+          timetableProvider.overrideWith(() => _FakeTimetableController()),
+          scheduleTemplateCatalogProvider.overrideWith(
+            (ref) async => const BellScheduleTemplateCatalog(schools: []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: const OnboardingWizardPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('onboarding_next')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('onboarding_skip_ai')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding_skip_ai')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('设置节假日（可选）'), findsOneWidget);
+    expect(find.textContaining('设置 → 学期与作息'), findsWidgets);
+    await tester.ensureVisible(find.byKey(const Key('onboarding_open_holidays')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding_open_holidays')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('学期与作息'), findsOneWidget);
+  });
+
   testWidgets('顶部跳过会直接完成向导', (tester) async {
     final settings = _FakeSettingsController(const AppSettings());
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith(() => settings),
+          timetableProvider.overrideWith(() => _FakeTimetableController()),
           scheduleTemplateCatalogProvider.overrideWith((ref) async =>
               const BellScheduleTemplateCatalog(schools: [])),
         ],

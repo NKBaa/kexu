@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/bell_schedule_template.dart';
 import '../settings/pages/ai_settings_page.dart';
 import '../settings/pages/holiday_ai_page.dart';
-import '../settings/pages/holiday_reminder_page.dart';
+import '../settings/pages/semester_settings_page.dart';
 import '../settings/pages/silicon_flow_guide_page.dart';
 import '../settings/providers/schedule_template_provider.dart';
 import '../settings/providers/settings_provider.dart';
 import '../settings/schedule_template_apply.dart';
+import '../timetable/providers/timetable_provider.dart';
 import '../../core/utils/holiday_utils.dart';
 
 part 'tutorial_content.dart';
@@ -264,6 +265,61 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
     );
   }
 
+  /// 学期是周次换算的基准，必须先于学校作息模板确认。
+  Widget _buildSemesterCard(ThemeData theme) {
+    final async = ref.watch(timetableProvider);
+    return Card(
+      child: async.when(
+        loading: () => const ListTile(
+          leading: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          title: Text('正在读取学期…'),
+        ),
+        error: (e, st) => ListTile(
+          leading: const Icon(Icons.error_outline),
+          title: const Text('读取学期失败'),
+          subtitle: Text('$e'),
+        ),
+        data: (timetable) {
+          final sem = timetable.semester;
+          return ListTile(
+            key: const Key('onboarding_open_semester'),
+            leading: Icon(
+              Icons.calendar_month_outlined,
+              color: theme.colorScheme.primary,
+            ),
+            title: Text(
+              '学期：${sem.name}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            subtitle: Text(
+              '${sem.startMonday.year}/${sem.startMonday.month}/'
+              '${sem.startMonday.day} 起 · 共 ${sem.totalWeeks} 周\n'
+              '周次、课表时间轴都按这里换算',
+            ),
+            isThreeLine: true,
+            trailing: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SemesterSettingsPage(),
+                ),
+              ),
+              child: const Text('修改'),
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SemesterSettingsPage(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildSchoolStep(ThemeData theme) {
     final async = ref.watch(scheduleTemplateCatalogProvider);
     return async.when(
@@ -272,10 +328,12 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         children: [
           const _StepHeader(
             icon: Icons.school_outlined,
-            title: '选择学校设置作息',
-            subtitle: '正在从 GitHub 加载学校模板；网络慢时可以先跳过，稍后在设置里手动调整。',
+            title: '设置学期与作息',
+            subtitle: '先确认学期起始日和总周数，再选择学校作息模板。',
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
+          _buildSemesterCard(theme),
+          const SizedBox(height: 24),
           const Center(child: CircularProgressIndicator()),
           const SizedBox(height: 16),
           Text(
@@ -292,9 +350,11 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         children: [
           _StepHeader(
             icon: Icons.school_outlined,
-            title: '选择学校设置作息',
-            subtitle: '选择学校后会导入该校的作息模板；也可以稍后在设置里再调整。',
+            title: '设置学期与作息',
+            subtitle: '先确认学期，再导入学校作息模板；模板加载失败也不影响继续。',
           ),
+          const SizedBox(height: 10),
+          _buildSemesterCard(theme),
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -325,9 +385,19 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         children: [
           _StepHeader(
             icon: Icons.school_outlined,
-            title: '选择学校设置作息',
-            subtitle: '点击学校会自动导入该校全部作息模板，之后仍可修改。',
+            title: '设置学期与作息',
+            subtitle: '先确认学期，再点击学校导入该校全部作息模板；之后仍可修改。',
           ),
+          const SizedBox(height: 10),
+          _buildSemesterCard(theme),
+          const SizedBox(height: 16),
+          Text(
+            '导入学校作息模板',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
           if (_appliedSchool != null) ...[
             const SizedBox(height: 12),
             Card(
@@ -403,7 +473,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         _StepHeader(
           icon: Icons.auto_awesome_outlined,
           title: '配置大模型 API',
-          subtitle: '用于识别课表图片和「一句话改课表」。这一步可以跳过，之后在设置里再配置。',
+          subtitle: '用于识别课表图片、改课表和加日程。这一步可以跳过，之后在设置里再配置。',
         ),
         const SizedBox(height: 14),
         Card(
@@ -455,7 +525,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
               const SizedBox(height: 8),
               _AiStatusCard(
                 title: '语言模型',
-                subtitle: '一句话改课表',
+                subtitle: '改课表 / 加日程',
                 icon: Icons.chat_bubble_outline,
                 configured: config.text.isConfigured,
                 model: config.text.model,
@@ -499,9 +569,18 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         const _StepHeader(
           icon: Icons.beach_access_outlined,
           title: '设置节假日（可选）',
-          subtitle: '放假当天不显示课程，也不会安排上课提醒；可以稍后再加。',
+          subtitle: '节假日现在收在「学期与作息」里；放假当天不显示课程，也不排上课提醒。',
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
+        Card(
+          color: theme.colorScheme.secondaryContainer,
+          child: const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('入口位置'),
+            subtitle: Text('设置 → 学期与作息 → 页面底部「节假日」'),
+          ),
+        ),
+        const SizedBox(height: 10),
         async.when(
           loading: () => const Padding(
             padding: EdgeInsets.all(24),
@@ -542,13 +621,13 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
                   const Divider(height: 1),
                   ListTile(
                     key: const Key('onboarding_open_holidays'),
-                    leading: const Icon(Icons.add_circle_outline),
-                    title: const Text('添加 / 管理节假日'),
-                    subtitle: const Text('添加国庆、校运会等放假日期'),
+                    leading: const Icon(Icons.calendar_month_outlined),
+                    title: const Text('打开学期与作息'),
+                    subtitle: const Text('在页面底部「节假日」卡片里添加或删除'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const HolidayReminderPage(),
+                        builder: (_) => const SemesterSettingsPage(),
                       ),
                     ),
                   ),
@@ -572,7 +651,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         ),
         const SizedBox(height: 12),
         Text(
-          '这一步可以跳过：之后在「设置 → 节假日与提醒」里随时添加。',
+          '这一步可以跳过：之后在「设置 → 学期与作息 → 节假日」里随时添加。',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -599,8 +678,9 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         const SizedBox(height: 8),
         const _GuideCard(
           icon: Icons.auto_awesome_outlined,
-          title: '一句话改课表',
-          description: '在课表页点「AI」，直接说「高数改成单双周」这类需求。',
+          title: 'AI 助手（改课表 / 加日程）',
+          description: '在课表页点「AI」，说「高数改成单双周」或「明天下午 3 点交作业」，'
+              '同一个窗口处理两类需求。',
         ),
         const SizedBox(height: 8),
         const _GuideCard(
