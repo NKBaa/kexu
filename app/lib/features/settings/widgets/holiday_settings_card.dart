@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/holiday_utils.dart';
 import '../../../core/utils/ids.dart';
 import '../../../core/utils/week_utils.dart';
+import '../../../core/widgets/apple_pickers.dart';
 import '../../../core/widgets/app_notice.dart';
 import '../../../core/widgets/hint_icon.dart';
 import '../../../data/models/app_settings.dart';
@@ -233,15 +234,12 @@ class _AddHolidayDialogState extends State<AddHolidayDialog> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
+    final picked = await showAppleDatePicker(
+      context,
+      initial: _date,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: '选择放假日期',
-      cancelText: '取消',
-      confirmText: '确定',
-      fieldLabelText: '日期',
+      title: '选择放假日期',
     );
     if (picked == null) return;
     setState(() {

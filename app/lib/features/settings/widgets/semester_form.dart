@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/utils/week_utils.dart';
+import '../../../core/widgets/apple_pickers.dart';
 import '../../../core/widgets/hint_icon.dart';
 import '../../../data/models/semester.dart';
 
@@ -128,15 +129,12 @@ class _SemesterFormState extends State<SemesterForm> {
   }
 
   Future<void> _pickStartMonday() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: widget.semester.startMonday,
+    final picked = await showAppleDatePicker(
+      context,
+      initial: widget.semester.startMonday,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: '选择第 1 周的任意一天',
-      cancelText: '取消',
-      confirmText: '确定',
-      fieldLabelText: '日期',
+      title: '选择第 1 周的任意一天',
     );
     if (picked == null) return;
     // 统一归一化到所在周的周一，避免用户点错到周二导致周次计算整体偏移。

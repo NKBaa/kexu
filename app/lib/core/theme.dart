@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../data/models/app_theme_spec.dart';
@@ -13,8 +14,8 @@ import '../data/models/app_theme_spec.dart';
 class AppRadius {
   const AppRadius._();
 
-  /// 卡片/弹窗圆角（Expressive 风格偏大）。
-  static const double card = 24;
+  /// 卡片/弹窗圆角（苹果分组卡片风格）。
+  static const double card = 16;
 
   /// 胶囊圆角（半径取一个足够大的值，视觉上等于 50% 高度）。
   static const double pill = 999;
@@ -64,11 +65,11 @@ class CoursePalette {
 class AppTheme {
   const AppTheme._();
 
-  static const Color _seed = Color(0xFF4F5D86);
-  static const Color _ink = Color(0xFF1B1B1F);
-  static const Color _warmSurface = Color(0xFFF8F6EE);
-  static const Color _warmCard = Color(0xFFFEFCF7);
-  static const Color _warmField = Color(0xFFF1EEE4);
+  static const Color _seed = Color(0xFF007AFF);
+  static const Color _ink = Color(0xFF000000);
+  static const Color _warmSurface = Color(0xFFF2F2F7);
+  static const Color _warmCard = Color(0xFFFFFFFF);
+  static const Color _warmField = Color(0xFFFFFFFF);
 
   static ThemeData light() => _build(Brightness.light);
 
@@ -162,24 +163,24 @@ class AppTheme {
       brightness: brightness,
     );
     final scheme = baseScheme.copyWith(
-      primary: isDark ? const Color(0xFFB9C5F2) : const Color(0xFF4F5D86),
-      onPrimary: isDark ? const Color(0xFF1A2138) : Colors.white,
+      primary: isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF),
+      onPrimary: Colors.white,
       primaryContainer:
-          isDark ? const Color(0xFF35415F) : const Color(0xFFDDE5F7),
+          isDark ? const Color(0xFF0A2A4A) : const Color(0xFFD6E9FF),
       onPrimaryContainer:
-          isDark ? const Color(0xFFE3E8FA) : const Color(0xFF1D2A4B),
-      secondary: isDark ? const Color(0xFFD8D2C2) : const Color(0xFF6B6455),
+          isDark ? const Color(0xFFD6E9FF) : const Color(0xFF003A75),
+      secondary: isDark ? const Color(0xFFAEAEB2) : const Color(0xFF8E8E93),
       secondaryContainer:
-          isDark ? const Color(0xFF403B31) : const Color(0xFFF0EAD9),
+          isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
       onSecondaryContainer:
-          isDark ? const Color(0xFFF4EFE1) : const Color(0xFF2A251B),
-      surface: isDark ? const Color(0xFF121214) : _warmSurface,
-      onSurface: isDark ? const Color(0xFFEDEAE2) : _ink,
+          isDark ? const Color(0xFFF2F2F7) : const Color(0xFF1C1C1E),
+      surface: isDark ? const Color(0xFF000000) : _warmSurface,
+      onSurface: isDark ? const Color(0xFFFFFFFF) : _ink,
       surfaceTint: Colors.transparent,
-      outline: isDark ? const Color(0xFF46464C) : const Color(0xFFD6D0C2),
-      outlineVariant: isDark ? const Color(0xFF333338) : const Color(0xFFE7E2D7),
-      inverseSurface: isDark ? const Color(0xFFEDEAE2) : const Color(0xFF2C2C31),
-      onInverseSurface: isDark ? const Color(0xFF2C2C31) : const Color(0xFFF8F6EE),
+      outline: isDark ? const Color(0xFF38383A) : const Color(0xFFC6C6C8),
+      outlineVariant: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFD1D1D6),
+      inverseSurface: isDark ? const Color(0xFFF2F2F7) : const Color(0xFF1C1C1E),
+      onInverseSurface: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
     );
 
     final textTheme = base.textTheme.copyWith(
@@ -201,19 +202,20 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: isDark ? const Color(0xFF121214) : _warmSurface,
+      scaffoldBackgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        toolbarHeight: 64,
-        backgroundColor: isDark ? const Color(0xFF121214) : _warmSurface,
+        toolbarHeight: 60,
+        backgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           color: scheme.onSurface,
-          fontSize: 24,
+          fontSize: 28,
           fontWeight: FontWeight.w700,
+          letterSpacing: -0.6,
         ),
       ),
       cardTheme: CardThemeData(
@@ -221,70 +223,76 @@ class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardBorder,
-          side: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.55),
-          ),
+          side: BorderSide(color: scheme.outlineVariant),
         ),
-        color: isDark ? const Color(0xFF1C1C20) : _warmCard,
+        color: isDark ? const Color(0xFF1C1C1E) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.75),
-        thickness: 1,
+        color: scheme.outlineVariant,
+        thickness: 0.7,
         space: 1,
       ),
       inputDecorationTheme: InputDecorationTheme(
         isDense: true,
         border: OutlineInputBorder(
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.primary, width: 1.4),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.error, width: 1.4),
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF242426) : _warmField,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        fillColor: isDark ? const Color(0xFF1C1C1E) : _warmField,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          shape: AppRadius.pillShape,
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          shape: AppRadius.pillShape,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           side: BorderSide(color: scheme.outlineVariant),
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          shape: AppRadius.pillShape,
-          textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w500),
         ),
       ),
       chipTheme: ChipThemeData(
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
         side: BorderSide.none,
-        backgroundColor: isDark ? const Color(0xFF2A2A2E) : const Color(0xFFEDE8DB),
+        backgroundColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
         labelStyle: textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
@@ -301,53 +309,54 @@ class AppTheme {
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? const Color(0xFF1C1C20) : _warmCard,
+        backgroundColor: isDark ? const Color(0xFF1C1C1E) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.card),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? const Color(0xFF1C1C20) : _warmCard,
+        backgroundColor: isDark ? const Color(0xFF1C1C1E) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 76,
+        height: 64,
         elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF18181B) : _warmSurface,
+        backgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
         surfaceTintColor: Colors.transparent,
-        indicatorColor: scheme.primaryContainer,
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            size: 23,
-            color: selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+            size: 24,
+            color: selected ? scheme.primary : scheme.onSurfaceVariant,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return textTheme.labelMedium?.copyWith(
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+          return textTheme.labelSmall?.copyWith(
+            fontSize: 10,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? scheme.primary : scheme.onSurfaceVariant,
           );
         }),
       ),
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: isDark ? const Color(0xFF18181B) : _warmSurface,
-        indicatorColor: scheme.primaryContainer,
-        selectedIconTheme: IconThemeData(color: scheme.onPrimaryContainer),
+        backgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
+        indicatorColor: Colors.transparent,
+        selectedIconTheme: IconThemeData(color: scheme.primary),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: scheme.onSurface,
+          fontWeight: FontWeight.w600,
+          color: scheme.primary,
         ),
         unselectedLabelTextStyle: textTheme.labelMedium?.copyWith(
           color: scheme.onSurfaceVariant,
@@ -395,6 +404,36 @@ class AppTheme {
         ),
         textStyle: TextStyle(color: scheme.onInverseSurface, fontSize: 12),
       ),
+      switchTheme: SwitchThemeData(
+        thumbColor: const WidgetStatePropertyAll(Colors.white),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? const Color(0xFF34C759)
+              : (isDark ? const Color(0xFF39393D) : const Color(0xFFE5E5EA));
+        }),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+      cupertinoOverrideTheme: CupertinoThemeData(
+        brightness: brightness,
+        primaryColor: scheme.primary,
+        barBackgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
+        scaffoldBackgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
+        textTheme: CupertinoTextThemeData(
+          primaryColor: scheme.primary,
+          textStyle: textTheme.bodyMedium,
+        ),
+      ),
+      splashFactory: NoSplash.splashFactory,
+      visualDensity: VisualDensity.standard,
     );
   }
 }

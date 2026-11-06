@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../../core/widgets/apple_pickers.dart';
 import '../../../data/models/semester.dart';
 
 /// 作息时间表编辑：每个「第 N 节」的起止时间。
@@ -343,27 +343,46 @@ class _PeriodFormState extends State<PeriodForm> {
     required String label,
     required bool hasError,
   }) {
-    return TextField(
-      controller: controller,
-      enabled: widget.enabled,
-      keyboardType: TextInputType.datetime,
-      textInputAction: TextInputAction.next,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
-        LengthLimitingTextInputFormatter(5),
-      ],
-      onChanged: (_) => _validateAndEmit(),
-      onSubmitted: (_) => _validateAndEmit(),
-      decoration: InputDecoration(
-        isDense: true,
-        labelText: label,
-        hintText: '08:00',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        errorText: hasError ? '' : null,
-        errorStyle: const TextStyle(fontSize: 0, height: 0),
-        errorBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.red),
-          borderRadius: BorderRadius.all(Radius.circular(999)),
+    final theme = Theme.of(context);
+    final current = _parseTime(controller.text);
+    return SizedBox(
+      height: 42,
+      child: OutlinedButton(
+        onPressed: widget.enabled
+            ? () async {
+                final initial = _parseTime(controller.text) ?? '08:00';
+                final parts = initial.split(':');
+                final picked = await showAppleTimePicker(
+                  context,
+                  initial: TimeOfDay(
+                    hour: int.parse(parts[0]),
+                    minute: int.parse(parts[1]),
+                  ),
+                  title: '$label时间',
+                );
+                if (picked == null) return;
+                controller.text =
+                    '${picked.hour.toString().padLeft(2, '0')}:'
+                    '${picked.minute.toString().padLeft(2, '0')}';
+                _validateAndEmit();
+              }
+            : null,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          side: BorderSide(
+            color: hasError
+                ? theme.colorScheme.error
+                : theme.colorScheme.outlineVariant,
+          ),
+        ),
+        child: Text(
+          current ?? '--:--',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

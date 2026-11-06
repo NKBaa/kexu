@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/ids.dart';
+import '../../../core/widgets/apple_pickers.dart';
 import '../../../data/models/bell_schedule.dart';
 import '../../../data/models/semester.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -56,12 +57,12 @@ class _BellScheduleEditorPageState extends ConsumerState<BellScheduleEditorPage>
   Future<void> _pickDate({required bool isStart}) async {
     final now = DateTime.now();
     final initial = (isStart ? _start : _end) ?? now;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
+    final picked = await showAppleDatePicker(
+      context,
+      initial: initial,
       firstDate: DateTime(now.year - 5),
       lastDate: DateTime(now.year + 10),
-      helpText: isStart ? '选择生效起始日期' : '选择生效结束日期',
+      title: isStart ? '生效起始日期' : '生效结束日期',
     );
     if (picked == null) return;
     setState(() {

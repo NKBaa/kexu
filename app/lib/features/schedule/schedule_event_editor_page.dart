@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/ids.dart';
+import '../../core/widgets/apple_pickers.dart';
 import '../../data/models/schedule_event.dart';
 import 'providers/schedule_events_provider.dart';
 
@@ -65,22 +66,22 @@ class _ScheduleEventEditorPageState
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
+    final picked = await showAppleDatePicker(
+      context,
+      initial: _date,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: '选择日程日期',
+      title: '选择日程日期',
     );
     if (picked != null) setState(() => _date = picked);
   }
 
   Future<void> _pickTime({required bool start}) async {
     final initial = (start ? _start : _end) ?? const TimeOfDay(hour: 9, minute: 0);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-      helpText: start ? '开始时间' : '结束时间',
+    final picked = await showAppleTimePicker(
+      context,
+      initial: initial,
+      title: start ? '开始时间' : '结束时间',
     );
     if (picked == null) return;
     setState(() {

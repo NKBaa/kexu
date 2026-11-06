@@ -111,10 +111,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
               onSelect: (date) => setState(() => _selected = date),
             ),
             const SizedBox(height: 16),
-            _SelectedDayHeader(
-              date: _selected,
-              onAdd: () => _openEditor(),
-            ),
+            _SelectedDayHeader(date: _selected),
             const SizedBox(height: 8),
             _buildDayEvents(events),
           ],
@@ -318,10 +315,9 @@ class _MonthGrid extends StatelessWidget {
 }
 
 class _SelectedDayHeader extends StatelessWidget {
-  const _SelectedDayHeader({required this.date, required this.onAdd});
+  const _SelectedDayHeader({required this.date});
 
   final DateTime date;
-  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -333,12 +329,6 @@ class _SelectedDayHeader extends StatelessWidget {
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w800,
           ),
-        ),
-        const Spacer(),
-        TextButton.icon(
-          onPressed: onAdd,
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('添加'),
         ),
       ],
     );

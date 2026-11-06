@@ -7,7 +7,8 @@
 > **不规律的课表，也有自己的顺序。**
 
 一款面向大学生的**课表 App**，一套 Flutter 代码同时运行在 **Android** 和 **Windows**。
-界面采用 Material 3 Expressive：暖白背景、大圆角卡片、胶囊控件与柔和课程配色。
+界面采用**苹果 iOS 风格**：分组浅灰背景、白色圆角卡片、蓝色强调色、细分割线、
+Cupertino 页面转场与滚轮式日期/时间选择器。
 
 针对的核心痛点是：**大学课程极不规律** —— 单周/双周、断续周次（3-5 周 + 7-9 周）、
 一门课一周上多次、临时调课补课。多数课表 App 只支持「第 1-16 周」，本项目从数据模型
@@ -196,7 +197,7 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
     下载目录默认在「下载\课序更新」。
   - **Android**：下载 `.apk` 后调起系统安装界面；当前环境不允许直接安装时
     （如没给「安装未知应用」权限），会**自动回退到浏览器打开 Release 页面**手动下载。
-- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.34+90`），
+- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.35+91`），
   App 内展示的版本由 `app/lib/core/app_info.dart` 统一提供，
   并有测试保证两者一致（见下方「发布新版本」）。
 - **只认正式版**：检查走 GitHub 的 `/releases/latest`，所以草稿（draft）与
@@ -307,6 +308,10 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
   可改课表、加日程，也可直接附课表截图。
   两者位置互换，AI 作为高频入口更突出，并且只在课表页出现。
 - **底部导航**：课表 / 日程 / 设置；批量修改收进课表「更多」。
+- **时间/日期统一用苹果滚轮选择器**：日程起止时间、作息每节时间、学期起始日、
+  节假日日期、作息生效日期都使用底部滚轮 + 取消/完成，不再混用 Material 时钟弹窗。
+- **精简重复入口**：日程页只保留右下角新建按钮，删掉日期标题旁的重复「添加」；
+  日程 AI 与课表 AI 合并为同一个窗口。
 - **设置是二级菜单**：设置首页只列出分类清单，点进去才是具体配置。
   新增一个设置分类只需往 `settingsSections()` 里**追加一条**（标题/图标/页面），
   不用改布局 —— 这是为后续持续加功能留的扩展点。
@@ -409,17 +414,17 @@ lib/
 ### 已构建好的产物
 
 `tooling\build-all.ps1` 会把两个平台的产物按版本号归档到 `dist/`
-（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.34+90` → 文件名用 `v1.2.34`）。
+（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.35+91` → 文件名用 `v1.2.35`）。
 `dist/` 已在 `.gitignore` 里：**仓库只存源码，安装包作为 GitHub Release 资产上传**。
 
 | 平台 | 路径 | 说明 |
 |---|---|---|
-| Windows | `dist/windows/kexu-v1.2.34-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
-| Android | `dist/android/kexu-v1.2.34.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
+| Windows | `dist/windows/kexu-v1.2.35-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
+| Android | `dist/android/kexu-v1.2.35.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
 
-> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.34；
+> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.35；
 > 解压 zip 后直接双击 `course_timetable.exe` 即可运行。`dist/android/课表-v1.0.0.apk` 是历史版本，
-> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.34.apk`（归档文件名统一用 ASCII，
+> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.35.apk`（归档文件名统一用 ASCII，
 > 避免 gh CLI 上传时把中文文件名吃掉）。
 
 > 正式发布到应用商店前，请在 `app/android/app/build.gradle.kts` 里换成你自己的
@@ -496,7 +501,7 @@ pwsh -File tooling\build-all.ps1
 
 ```yaml
 # app/pubspec.yaml
-version: 1.2.34+90
+version: 1.2.35+91
 ```
 ```dart
 // app/lib/core/app_info.dart
@@ -512,8 +517,8 @@ pwsh -File tooling\build-all.ps1
 
 | 平台 | 路径 |
 |---|---|
-| Android | `dist/android/kexu-v1.2.34.apk` |
-| Windows | `dist/windows/kexu-v1.2.34-windows.zip`（整个 Release 目录压缩） |
+| Android | `dist/android/kexu-v1.2.35.apk` |
+| Windows | `dist/windows/kexu-v1.2.35-windows.zip`（整个 Release 目录压缩） |
 
 ### 3) 发布到 GitHub
 ```powershell
@@ -521,20 +526,20 @@ pwsh -File tooling\build-all.ps1
 pwsh -File tooling\release.ps1 -DryRun
 
 # 正式发布（默认会先构建；想复用已有 dist 资产就加 -SkipBuild）
-pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.34.md
+pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.35.md
 ```
 脚本做的事：校验 `-Version` 与 `pubspec.yaml` 一致 → 校验 git 仓库与 `gh` 登录状态 →
-（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.34 --title "课序 v1.2.34" ...`。
+（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.35 --title "课序 v1.2.35" ...`。
 它**不会**删除或覆盖已有 Release：同名 Release 已存在时直接报错退出，交给人决定。
 
 等价的手工命令（脚本内部就是这一条）：
 
 ```powershell
-gh release create v1.2.34 `
-  --title "课序 v1.2.34" `
-  --notes-file docs\release-notes-v1.2.34.md `
-  "dist\android\kexu-v1.2.34.apk" `
-  "dist\windows\kexu-v1.2.34-windows.zip"
+gh release create v1.2.35 `
+  --title "课序 v1.2.35" `
+  --notes-file docs\release-notes-v1.2.35.md `
+  "dist\android\kexu-v1.2.35.apk" `
+  "dist\windows\kexu-v1.2.35-windows.zip"
 ```
 
 > 仓库已初始化并推送到 **https://github.com/NKBaa/kexu**（`main` 分支，`origin` 已配好）。
@@ -548,10 +553,10 @@ App 用 GitHub API `GET /releases/latest` 取最新 Release，再按平台挑安
 
 - **Android**：只认 `.apk`；多个时优先文件名含 `android` / `arm64` / `universal` 的。
 - **Windows**：`.exe` 优先，其次 `.zip`；多个时优先含 `windows` / `win` / `setup` / `x64` 的。
-  所以 Windows 打包成 `kexu-v1.2.34-windows.zip` 能被正确匹配（名字里有 `windows`）；
+  所以 Windows 打包成 `kexu-v1.2.35-windows.zip` 能被正确匹配（名字里有 `windows`）；
   因为不是 `.exe`，下载后是「打开所在文件夹，解压后运行」。
 - 没有匹配资产时，更新页会提示「这个 Release 没有匹配当前平台的安装包」，可到 GitHub 手动下载。
-- 版本比较用 Release 的 **tag**（`v1.2.34`）与 App 内的 `1.2.34+90` 比较，**相等不算更新**。
+- 版本比较用 Release 的 **tag**（`v1.2.35`）与 App 内的 `1.2.35+91` 比较，**相等不算更新**。
 
 ### 5) 国内镜像与 GitHub API
 App 侧的镜像只做 URL 前缀拼接，不改变 API 语义：
@@ -694,7 +699,7 @@ $env:COURSE_TIMETABLE_DATA_DIR = 'D:\课表数据'
 
 ```powershell
 cd C:\dev\kt
-flutter test        # 698 个用例：692 通过 / 6 默认跳过（WebDAV 端到端用例需真实网盘，默认跳过）
+flutter test        # 700 个用例：694 通过 / 6 默认跳过（WebDAV 端到端用例需真实网盘，默认跳过）
 flutter analyze     # 应输出 No issues found!
 ```
 
