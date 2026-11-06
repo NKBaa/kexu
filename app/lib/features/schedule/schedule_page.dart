@@ -172,23 +172,55 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         ? null
         : weekOfDate(_selected, timetable.semester.startMonday);
     final duplicates = _duplicateCount(events);
-    return ListView(
-      key: const Key('schedule_list'),
-      padding: const EdgeInsets.only(bottom: 120),
+    // 顶部标题栏与日历固定；只有下方「日程显示」区域滚动。
+    // 向下滚动日程时日历收缩成单周，回到顶部时再展开。
+    return Column(
       children: [
         _buildHeader(palette, week, duplicates > 0),
-        const SizedBox(height: 4),
         _buildCalendar(palette, events),
-        const SizedBox(height: 6),
-        _buildDaySummary(palette),
-        if (duplicates > 0) ...[
-          const SizedBox(height: 10),
-          _buildDuplicateBanner(palette, duplicates, events),
-        ],
-        const SizedBox(height: 18),
-        _buildDayEvents(palette, events),
+        const SizedBox(height: 4),
+        Expanded(
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onAgendaScroll,
+            child: ListView(
+              key: const Key('schedule_list'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 120),
+              children: [
+                _buildDaySummary(palette),
+                if (duplicates > 0) ...[
+                  const SizedBox(height: 10),
+                  _buildDuplicateBanner(palette, duplicates, events),
+                ],
+                const SizedBox(height: 18),
+                _buildDayEvents(palette, events),
+              ],
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  bool _onAgendaScroll(ScrollNotification notification) {
+    if (notification is! ScrollUpdateNotification) return false;
+    final delta = notification.scrollDelta ?? 0;
+    if (delta > 0 &&
+        _expanded &&
+        notification.metrics.pixels > 24) {
+      setState(() {
+        _expanded = false;
+        _calendarHeight = _collapsedHeight;
+      });
+    } else if (delta < 0 &&
+        !_expanded &&
+        notification.metrics.pixels <= 0) {
+      setState(() {
+        _expanded = true;
+        _calendarHeight = _expandedHeight;
+      });
+    }
+    return false;
   }
 
   Widget _buildHeader(ColorOsPalette palette, int? week, bool hasDuplicates) {

@@ -43,12 +43,22 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final repo = _InMemoryScheduleRepository()
+      ..events = [
+        for (var i = 0; i < 8; i++)
+          ScheduleEvent(
+            id: 'e$i',
+            title: '日程 $i',
+            date: DateTime(2026, 11, 6),
+            startTime: '${(9 + i).toString().padLeft(2, '0')}:00',
+            endTime: '${(9 + i).toString().padLeft(2, '0')}:30',
+          ),
+      ];
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           timetableProvider.overrideWith(() => _FakeTimetableController()),
-          scheduleEventRepositoryProvider
-              .overrideWithValue(_InMemoryScheduleRepository()),
+          scheduleEventRepositoryProvider.overrideWithValue(repo),
         ],
         child: MaterialApp(
           theme: AppTheme.dark(),
@@ -62,7 +72,7 @@ void main() {
     expect(pageView, findsOneWidget);
     expect(tester.getSize(pageView).height, 52 * 6);
 
-    await tester.drag(pageView, const Offset(0, -220));
+    await tester.drag(find.byKey(const Key('schedule_list')), const Offset(0, -180));
     await tester.pumpAndSettle();
     expect(tester.getSize(pageView).height, 52);
 
