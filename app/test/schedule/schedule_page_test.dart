@@ -72,7 +72,19 @@ void main() {
     expect(pageView, findsOneWidget);
     expect(tester.getSize(pageView).height, 52 * 6);
 
-    await tester.drag(find.byKey(const Key('schedule_list')), const Offset(0, -180));
+    await tester.drag(
+      find.byKey(const Key('schedule_list')),
+      const Offset(0, -60),
+    );
+    await tester.pumpAndSettle();
+    final partial = tester.getSize(pageView).height;
+    expect(partial, lessThan(52 * 6));
+    expect(partial, greaterThan(52));
+
+    await tester.drag(
+      find.byKey(const Key('schedule_list')),
+      const Offset(0, -120),
+    );
     await tester.pumpAndSettle();
     expect(tester.getSize(pageView).height, 52);
 
