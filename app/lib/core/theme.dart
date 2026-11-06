@@ -61,15 +61,15 @@ class CoursePalette {
   }
 }
 
-/// 全局主题：暖白 + 黑字 + 深蓝强调，采用 Material 3 Expressive。
+/// 全局主题：黑灰文字 + 牛皮纸黄背景 + 白卡片。
 class AppTheme {
   const AppTheme._();
 
-  static const Color _seed = Color(0xFF007AFF);
-  static const Color _ink = Color(0xFF000000);
-  static const Color _warmSurface = Color(0xFFF2F2F7);
-  static const Color _warmCard = Color(0xFFFFFFFF);
-  static const Color _warmField = Color(0xFFFFFFFF);
+  static const Color _seed = Color(0xFFB99A6B);
+  static const Color _ink = Color(0xFF1C1C1C);
+  static const Color _warmSurface = Color(0xFFEFE6D6);
+  static const Color _warmCard = Color(0xFFFFFDF8);
+  static const Color _warmField = Color(0xFFFFFDF8);
 
   static ThemeData light() => _build(Brightness.light);
 
@@ -78,6 +78,8 @@ class AppTheme {
   /// 用用户主题/市场主题构建 ThemeData：保留默认排版与组件风格，
   /// 只替换色板与圆角。
   static ThemeData custom(AppThemeSpec spec, Brightness brightness) {
+    // 内置默认主题直接使用 AppTheme 的黑灰 / 牛皮纸 / 白配色。
+    if (spec.id == 'default') return _build(brightness);
     final base = _build(brightness);
     final palette = spec.paletteFor(brightness);
     final generated = ColorScheme.fromSeed(
@@ -163,24 +165,24 @@ class AppTheme {
       brightness: brightness,
     );
     final scheme = baseScheme.copyWith(
-      primary: isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF),
-      onPrimary: Colors.white,
+      primary: isDark ? const Color(0xFFD9C29A) : const Color(0xFF2B2B2B),
+      onPrimary: isDark ? const Color(0xFF1C1C1C) : Colors.white,
       primaryContainer:
-          isDark ? const Color(0xFF0A2A4A) : const Color(0xFFD6E9FF),
+          isDark ? const Color(0xFF3A3328) : const Color(0xFFE3D3B8),
       onPrimaryContainer:
-          isDark ? const Color(0xFFD6E9FF) : const Color(0xFF003A75),
-      secondary: isDark ? const Color(0xFFAEAEB2) : const Color(0xFF8E8E93),
+          isDark ? const Color(0xFFF0E3CC) : const Color(0xFF2B2B2B),
+      secondary: isDark ? const Color(0xFFB8A98F) : const Color(0xFF6E6252),
       secondaryContainer:
-          isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+          isDark ? const Color(0xFF332F28) : const Color(0xFFDCCDB5),
       onSecondaryContainer:
-          isDark ? const Color(0xFFF2F2F7) : const Color(0xFF1C1C1E),
-      surface: isDark ? const Color(0xFF000000) : _warmSurface,
-      onSurface: isDark ? const Color(0xFFFFFFFF) : _ink,
+          isDark ? const Color(0xFFF2EFE8) : const Color(0xFF2B2B2B),
+      surface: isDark ? const Color(0xFF171717) : _warmSurface,
+      onSurface: isDark ? const Color(0xFFF2EFE8) : _ink,
       surfaceTint: Colors.transparent,
-      outline: isDark ? const Color(0xFF38383A) : const Color(0xFFC6C6C8),
-      outlineVariant: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFD1D1D6),
-      inverseSurface: isDark ? const Color(0xFFF2F2F7) : const Color(0xFF1C1C1E),
-      onInverseSurface: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
+      outline: isDark ? const Color(0xFF4A463F) : const Color(0xFFC8B99F),
+      outlineVariant: isDark ? const Color(0xFF33302B) : const Color(0xFFDED2BE),
+      inverseSurface: isDark ? const Color(0xFFF2EFE8) : const Color(0xFF1C1C1C),
+      onInverseSurface: isDark ? const Color(0xFF1C1C1C) : const Color(0xFFF2EFE8),
     );
 
     final textTheme = base.textTheme.copyWith(
@@ -202,13 +204,13 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
+      scaffoldBackgroundColor: isDark ? const Color(0xFF171717) : _warmSurface,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
         toolbarHeight: 60,
-        backgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
+        backgroundColor: isDark ? const Color(0xFF171717) : _warmSurface,
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         titleTextStyle: textTheme.titleLarge?.copyWith(
@@ -225,7 +227,7 @@ class AppTheme {
           borderRadius: AppRadius.cardBorder,
           side: BorderSide(color: scheme.outlineVariant),
         ),
-        color: isDark ? const Color(0xFF1C1C1E) : _warmCard,
+        color: isDark ? const Color(0xFF232323) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
       ),
@@ -257,7 +259,7 @@ class AppTheme {
           borderSide: BorderSide(color: scheme.error, width: 1.4),
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF1C1C1E) : _warmField,
+        fillColor: isDark ? const Color(0xFF2A2A2A) : _warmField,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -292,7 +294,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(10),
         ),
         side: BorderSide.none,
-        backgroundColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+        backgroundColor: isDark ? const Color(0xFF2E2B26) : const Color(0xFFE3D8C5),
         labelStyle: textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
@@ -313,14 +315,14 @@ class AppTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : _warmCard,
+        backgroundColor: isDark ? const Color(0xFF232323) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : _warmCard,
+        backgroundColor: isDark ? const Color(0xFF232323) : _warmCard,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -329,7 +331,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         height: 64,
         elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5EEDF),
         surfaceTintColor: Colors.transparent,
         indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -350,7 +352,7 @@ class AppTheme {
         }),
       ),
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5EEDF),
         indicatorColor: Colors.transparent,
         selectedIconTheme: IconThemeData(color: scheme.primary),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
@@ -408,8 +410,8 @@ class AppTheme {
         thumbColor: const WidgetStatePropertyAll(Colors.white),
         trackColor: WidgetStateProperty.resolveWith((states) {
           return states.contains(WidgetState.selected)
-              ? const Color(0xFF34C759)
-              : (isDark ? const Color(0xFF39393D) : const Color(0xFFE5E5EA));
+              ? (isDark ? const Color(0xFFD9C29A) : const Color(0xFF2B2B2B))
+              : (isDark ? const Color(0xFF3A3733) : const Color(0xFFDED2BE));
         }),
         trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
@@ -425,8 +427,8 @@ class AppTheme {
       cupertinoOverrideTheme: CupertinoThemeData(
         brightness: brightness,
         primaryColor: scheme.primary,
-        barBackgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
-        scaffoldBackgroundColor: isDark ? const Color(0xFF000000) : _warmSurface,
+        barBackgroundColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5EEDF),
+        scaffoldBackgroundColor: isDark ? const Color(0xFF171717) : _warmSurface,
         textTheme: CupertinoTextThemeData(
           primaryColor: scheme.primary,
           textStyle: textTheme.bodyMedium,
