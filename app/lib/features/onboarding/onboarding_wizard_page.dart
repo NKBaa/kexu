@@ -11,7 +11,11 @@ import '../settings/providers/settings_provider.dart';
 import '../settings/schedule_template_apply.dart';
 import '../../core/utils/holiday_utils.dart';
 
+part 'tutorial_content.dart';
+
 /// 首次使用向导：学校作息 → 大模型 API → 节假日 → 添加课程方式。
+///
+/// `replay: true` 时切换为独立的 6 节使用教程，不再重复首次配置流程。
 class OnboardingWizardPage extends ConsumerStatefulWidget {
   const OnboardingWizardPage({super.key, this.replay = false});
 
@@ -29,7 +33,10 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
   String? _appliedSchool;
   int _appliedCount = 0;
 
-  static const int _totalSteps = 5;
+  static const int _setupSteps = 5;
+  static const int _tutorialSteps = 6;
+
+  int get _totalSteps => widget.replay ? _tutorialSteps : _setupSteps;
 
   Future<void> _finish() async {
     if (_finishing) return;
@@ -70,7 +77,6 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -92,135 +98,169 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '第 ${_step + 1} 步 / 共 $_totalSteps 步',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (var i = 0; i < _totalSteps; i++) ...[
-                        Expanded(
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 220),
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: i <= _step
-                                  ? scheme.primary
-                                  : scheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                          ),
-                        ),
-                        if (i != 3) const SizedBox(width: 6),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
+        child: widget.replay
+            ? _buildTutorialShell(theme)
+            : _buildSetupShell(theme),
+      ),
+    );
+  }
+
+  Widget _buildSetupShell(ThemeData theme) {
+    return Column(
+      children: [
+        _buildProgress(theme, label: '第 ${_step + 1} 步 / 共 $_totalSteps 步'),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: KeyedSubtree(
+              key: ValueKey<int>(_step),
+              child: switch (_step) {
+                0 => _buildSchoolStep(theme),
+                1 => _buildAiStep(theme),
+                2 => _buildHolidayStep(theme),
+                3 => _buildGuideStep(theme),
+                _ => _buildEditingStep(theme),
+              },
             ),
+          ),
+        ),
+        _buildFooter(theme),
+      ],
+    );
+  }
+
+  Widget _buildTutorialShell(ThemeData theme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 900;
+        final content = Column(
+          children: [
+            if (!wide)
+              _buildProgress(
+                theme,
+                label: '第 ${_step + 1} 节 / 共 $_totalSteps 节',
+              ),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
                 child: KeyedSubtree(
                   key: ValueKey<int>(_step),
-                  child: switch (_step) {
-                    0 => widget.replay
-                        ? _buildReplaySchoolStep(theme)
-                        : _buildSchoolStep(theme),
-                    1 => _buildAiStep(theme),
-                    2 => _buildHolidayStep(theme),
-                    3 => _buildGuideStep(theme),
-                    _ => _buildEditingStep(theme),
-                  },
+                  child: _buildTutorialStep(theme),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: Row(
-                children: [
-                  if (_step > 0)
-                    TextButton(
-                      onPressed: () => setState(() => _step--),
-                      child: const Text('上一步'),
-                    ),
-                  if (_step < _totalSteps - 1)
-                    TextButton(
-                      key: const Key('onboarding_skip_step'),
-                      onPressed: _finishing ? null : _next,
-                      child: const Text('跳过此步'),
-                    ),
-                  const Spacer(),
-                  FilledButton(
-                    key: const Key('onboarding_next'),
-                    onPressed: _finishing ? null : _next,
-                    child: Text(
-                      _step == _totalSteps - 1
-                          ? (widget.replay ? '完成' : '开始使用')
-                          : '下一步',
-                    ),
-                  ),
-                ],
+            _buildFooter(theme),
+          ],
+        );
+        if (!wide) return content;
+        return Row(
+          children: [
+            SizedBox(
+              width: 260,
+              child: _TutorialSidebar(
+                current: _step,
+                onSelect: (index) => setState(() => _step = index),
               ),
             ),
+            const VerticalDivider(width: 1),
+            Expanded(child: content),
           ],
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProgress(ThemeData theme, {required String label}) {
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              if (widget.replay)
+                Text(
+                  '约 5 分钟',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (var i = 0; i < _totalSteps; i++) ...[
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: i <= _step
+                          ? scheme.primary
+                          : scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                ),
+                if (i != _totalSteps - 1) const SizedBox(width: 6),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  /// 回看教程时的第一步：不请求 GitHub 模板，避免网络慢时卡在加载中。
-  Widget _buildReplaySchoolStep(ThemeData theme) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-      children: [
-        const _StepHeader(
-          icon: Icons.school_outlined,
-          title: '学期与作息',
-          subtitle: '学期起止、总周数与每节课时间，决定课表的时间骨架。',
-        ),
-        const SizedBox(height: 14),
-        const _GuideCard(
-          icon: Icons.calendar_month_outlined,
-          title: '设置学期',
-          description: '在「设置 → 学期与作息」里填写开学日期、学期名称和总周数；'
-              '课表按这些信息换算「第几周」。',
-        ),
-        const SizedBox(height: 8),
-        const _GuideCard(
-          icon: Icons.access_time,
-          title: '设置作息',
-          description: '可以手动编辑每节课的上下课时间，也可以从 GitHub 学校模板导入；'
-              '夏季/冬季作息可以建多套方案。',
-        ),
-        const SizedBox(height: 8),
-        const _GuideCard(
-          icon: Icons.beach_access_outlined,
-          title: '节假日',
-          description: '节假日也在「学期与作息」里管理；放假当天不显示课程、不排上课提醒。',
-        ),
-        const SizedBox(height: 14),
-        Text(
-          '回看教程不会改动你的设置；点「下一步」继续。',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+  Widget _buildFooter(ThemeData theme) {
+    final tutorial = widget.replay;
+    final last = _step == _totalSteps - 1;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: Row(
+        children: [
+          if (_step > 0)
+            TextButton(
+              onPressed: () => setState(() => _step--),
+              child: Text(tutorial ? '上一节' : '上一步'),
+            ),
+          if (!tutorial && !last)
+            TextButton(
+              key: const Key('onboarding_skip_step'),
+              onPressed: _finishing ? null : _next,
+              child: const Text('跳过此步'),
+            ),
+          const Spacer(),
+          FilledButton(
+            key: const Key('onboarding_next'),
+            onPressed: _finishing ? null : _next,
+            child: Text(
+              last
+                  ? (tutorial
+                      ? '完成教程'
+                      : (widget.replay ? '完成' : '开始使用'))
+                  : (tutorial ? '下一节' : '下一步'),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTutorialStep(ThemeData theme) {
+    return _TutorialChapterView(
+      chapter: _TutorialChapter.all[_step],
+      index: _step,
+      total: _totalSteps,
+      isLast: _step == _totalSteps - 1,
     );
   }
 
@@ -566,7 +606,8 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         const _GuideCard(
           icon: Icons.add_circle_outline,
           title: '手动添加',
-          description: '点顶栏「添加」，逐门填写课程、时间与周次。',
+          description: '点顶栏「更多 → 添加课程」，逐门填写课程、时间与周次；'
+              '也可以直接长按课表空白格快速选节次。',
         ),
         const SizedBox(height: 14),
         Text(
@@ -611,7 +652,7 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         const _GuideCard(
           icon: Icons.undo,
           title: '撤销与重做',
-          description: '顶栏可以撤销/重做；「更多」里还有添加课程、分享、导入导出和重启教程。',
+          description: '顶栏可以撤销/重做；「更多」里还有添加课程、分享、导入导出和使用教程。',
         ),
         const SizedBox(height: 14),
         Text(

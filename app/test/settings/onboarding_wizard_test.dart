@@ -123,11 +123,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('使用教程'), findsOneWidget);
-    expect(find.text('学期与作息'), findsOneWidget);
-    expect(find.text('第 1 步 / 共 5 步'), findsOneWidget);
+    expect(find.text('认识课表'), findsWidgets);
+    expect(find.text('第 1 节 / 共 6 节'), findsOneWidget);
+    expect(find.text('你可以这样做'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('onboarding_next')));
+    await tester.pumpAndSettle();
+    expect(find.text('添加课程'), findsWidgets);
+    expect(find.text('第 2 节 / 共 6 节'), findsOneWidget);
     await tester.tap(find.byKey(const Key('onboarding_skip_all')));
     await tester.pumpAndSettle();
     expect(find.text('打开教程'), findsOneWidget);
+  });
+
+  testWidgets('宽屏教程显示目录，可直接跳到最后一节', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final settings = _FakeSettingsController(
+      const AppSettings(onboardingCompleted: true),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith(() => settings),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: const OnboardingWizardPage(replay: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('tutorial_chapter_0')), findsOneWidget);
+    expect(find.byKey(const Key('tutorial_chapter_5')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('tutorial_chapter_5')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('第 6 节 / 共 6 节'), findsOneWidget);
+    expect(find.text('设置与数据'), findsWidgets);
+    expect(find.text('完成教程'), findsOneWidget);
   });
 
   testWidgets('顶部跳过会直接完成向导', (tester) async {
