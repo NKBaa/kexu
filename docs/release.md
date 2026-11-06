@@ -79,6 +79,6 @@ pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v<X.Y.Z>.md
 | Android | `kexu-v<X.Y.Z>.apk` | 只认 `.apk`；多个时优先含 `android` / `arm64` / `universal` |
 | Windows | `kexu-v<X.Y.Z>-windows.zip` | `.exe` 优先、其次 `.zip`；优先含 `windows` / `win` / `setup` / `x64` |
 
-- 版本比较用 tag（`v1.2.44`）与 App 内 `1.2.44+100` 比较，**相等不算更新**。
+- 版本比较用 tag（`v1.2.45`）与 App 内 `1.2.45+101` 比较，**相等不算更新**。
 - 镜像规则：**镜像地址 = 前缀 + 原始 GitHub 地址**（API 与资产下载都一样），
   所以发布时不需要为国内镜像做任何额外准备。

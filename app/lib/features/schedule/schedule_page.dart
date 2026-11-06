@@ -33,6 +33,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   late final PageController _pageController;
   bool _expanded = true;
   bool _dragging = false;
+  bool _autoCollapsed = false;
   double _calendarHeight = _expandedHeight;
 
   @override
@@ -203,20 +204,26 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   }
 
   bool _onAgendaScroll(ScrollNotification notification) {
-    if (notification is! ScrollUpdateNotification) return false;
+    // 只响应用户手指拖动，不响应惯性滚动/回弹，
+    // 否则日历会在列表回弹时反复收缩、展开。
+    if (notification is! ScrollUpdateNotification ||
+        notification.dragDetails == null) {
+      return false;
+    }
     final delta = notification.scrollDelta ?? 0;
-    if (delta > 0 &&
-        _expanded &&
-        notification.metrics.pixels > 24) {
+    if (delta > 0 && _expanded && notification.metrics.pixels > 12) {
       setState(() {
         _expanded = false;
+        _autoCollapsed = true;
         _calendarHeight = _collapsedHeight;
       });
     } else if (delta < 0 &&
         !_expanded &&
+        _autoCollapsed &&
         notification.metrics.pixels <= 0) {
       setState(() {
         _expanded = true;
+        _autoCollapsed = false;
         _calendarHeight = _expandedHeight;
       });
     }
@@ -327,6 +334,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   void _toggleCalendar() {
     setState(() {
       _expanded = !_expanded;
+      _autoCollapsed = false;
       _calendarHeight = _expanded ? _expandedHeight : _collapsedHeight;
     });
   }
@@ -372,6 +380,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                 : _calendarHeight > midpoint;
             setState(() {
               _expanded = expand;
+              _autoCollapsed = false;
               _calendarHeight = expand ? _expandedHeight : _collapsedHeight;
               _dragging = false;
             });

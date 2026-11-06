@@ -2,7 +2,7 @@ name: course_timetable
 description: "课序（Kexu）—— 面向大学生的不规律课表管理 App（Android + Windows），支持大模型图片转课表与自然语言改课表。"
 publish_to: 'none'
 
-version: 1.2.44+100
+version: 1.2.45+101
 
 environment:
   sdk: ^3.13.5
