@@ -131,7 +131,7 @@ class CourseCard extends StatelessWidget {
         waitDuration: const Duration(milliseconds: 400),
         child: Material(
           color: background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap == null ? null : () => onTap!(course, session),

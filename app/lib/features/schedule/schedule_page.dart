@@ -25,11 +25,15 @@ class SchedulePage extends ConsumerStatefulWidget {
 class _SchedulePageState extends ConsumerState<SchedulePage> {
   static const int _firstYear = 2000;
   static const int _monthCount = 2400;
+  static const double _collapsedHeight = 52;
+  static const double _expandedHeight = 52 * 6;
 
   late DateTime _month;
   late DateTime _selected;
   late final PageController _pageController;
   bool _expanded = true;
+  bool _dragging = false;
+  double _calendarHeight = _expandedHeight;
 
   @override
   void initState() {
@@ -288,6 +292,13 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     );
   }
 
+  void _toggleCalendar() {
+    setState(() {
+      _expanded = !_expanded;
+      _calendarHeight = _expanded ? _expandedHeight : _collapsedHeight;
+    });
+  }
+
   Widget _buildCalendar(ColorOsPalette palette, List<ScheduleEvent> events) {
     return Column(
       children: [
@@ -314,18 +325,31 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         const SizedBox(height: 4),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
+          onVerticalDragStart: (_) => setState(() => _dragging = true),
+          onVerticalDragUpdate: (details) {
+            setState(() {
+              _calendarHeight = (_calendarHeight + details.delta.dy)
+                  .clamp(_collapsedHeight, _expandedHeight);
+            });
+          },
           onVerticalDragEnd: (details) {
             final velocity = details.primaryVelocity ?? 0;
-            if (velocity > 180 && !_expanded) {
-              setState(() => _expanded = true);
-            } else if (velocity < -180 && _expanded) {
-              setState(() => _expanded = false);
-            }
+            final midpoint = (_collapsedHeight + _expandedHeight) / 2;
+            final expand = velocity.abs() > 220
+                ? velocity > 0
+                : _calendarHeight > midpoint;
+            setState(() {
+              _expanded = expand;
+              _calendarHeight = expand ? _expandedHeight : _collapsedHeight;
+              _dragging = false;
+            });
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
+            duration: _dragging
+                ? Duration.zero
+                : const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
-            height: _expanded ? 52 * 6 : 52,
+            height: _calendarHeight,
             child: ClipRect(
               child: PageView.builder(
                 key: ValueKey<bool>(_expanded),
@@ -352,7 +376,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         _CalendarToggle(
           palette: palette,
           expanded: _expanded,
-          onTap: () => setState(() => _expanded = !_expanded),
+          onTap: _toggleCalendar,
         ),
       ],
     );

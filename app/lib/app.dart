@@ -377,6 +377,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
     final width = MediaQuery.sizeOf(context).width;
     final useRail = width >= 900;
+    final scheme = Theme.of(context).colorScheme;
 
     final pages = <Widget>[
       TimetablePage(
@@ -424,26 +425,52 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           : body,
       bottomNavigationBar: useRail
           ? null
-          : NavigationBar(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.calendar_view_week_outlined),
-                  selectedIcon: Icon(Icons.calendar_view_week),
-                  label: '课表',
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: SafeArea(
+                top: false,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: NavigationBar(
+                      height: 64,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      selectedIndex: _index,
+                      onDestinationSelected: (i) =>
+                          setState(() => _index = i),
+                      destinations: const [
+                        NavigationDestination(
+                          icon: Icon(Icons.calendar_view_week_outlined),
+                          selectedIcon: Icon(Icons.calendar_view_week),
+                          label: '课表',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.event_note_outlined),
+                          selectedIcon: Icon(Icons.event_note),
+                          label: '日程',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.settings_outlined),
+                          selectedIcon: Icon(Icons.settings),
+                          label: '设置',
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                NavigationDestination(
-                  icon: Icon(Icons.event_note_outlined),
-                  selectedIcon: Icon(Icons.event_note),
-                  label: '日程',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: '设置',
-                ),
-              ],
+              ),
             ),
       // AI 助手移到右下角悬浮按钮，添加入口放到顶栏。
       floatingActionButton: _index == 0

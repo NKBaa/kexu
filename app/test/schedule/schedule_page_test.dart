@@ -62,7 +62,7 @@ void main() {
     expect(pageView, findsOneWidget);
     expect(tester.getSize(pageView).height, 52 * 6);
 
-    await tester.tap(find.byKey(const Key('schedule_calendar_toggle')));
+    await tester.drag(pageView, const Offset(0, -220));
     await tester.pumpAndSettle();
     expect(tester.getSize(pageView).height, 52);
 

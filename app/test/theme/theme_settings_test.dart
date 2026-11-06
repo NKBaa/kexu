@@ -18,7 +18,7 @@ void main() {
 
   test('findTheme 可找到内置与自定义主题', () {
     final custom = AppThemeSpec.fromCode(AppThemeSpec.template);
-    expect(findTheme([custom], 'default')?.name, '黑灰牛皮纸（默认）');
+    expect(findTheme([custom], 'default')?.name, 'ColorOS（默认）');
     expect(findTheme([custom], 'my-theme')?.name, '我的主题');
     expect(findTheme([custom], 'missing'), isNull);
   });

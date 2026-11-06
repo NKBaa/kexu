@@ -1086,7 +1086,7 @@ class _EmptyState extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '点顶栏的「添加」开始排课：\n'
+                '点「更多 → 添加课程」开始排课：\n'
                 '可以手动添加，或让 AI 从课表截图识别。',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -1102,7 +1102,7 @@ class _EmptyState extends StatelessWidget {
                       size: 16, color: scheme.primary),
                   const SizedBox(width: 6),
                   Text(
-                    '顶栏「添加」',
+                    '更多 → 添加课程',
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: scheme.primary,
                     ),
