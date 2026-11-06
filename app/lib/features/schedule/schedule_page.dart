@@ -344,39 +344,44 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
               _dragging = false;
             });
           },
-          child: AnimatedContainer(
-            duration: _dragging
-                ? Duration.zero
-                : const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            height: _calendarHeight,
-            child: ClipRect(
-              child: PageView.builder(
-                key: ValueKey<bool>(_expanded),
-                controller: _pageController,
-                itemCount: _monthCount,
-                onPageChanged: _onPageChanged,
-                itemBuilder: (context, index) {
-                  return SingleChildScrollView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: _MonthGrid(
-                      month: _monthAt(index),
-                      selected: _selected,
-                      events: events,
-                      expanded: _expanded,
-                      palette: palette,
-                      onSelect: (date) => setState(() => _selected = date),
-                    ),
-                  );
-                },
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: _dragging
+                    ? Duration.zero
+                    : const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                height: _calendarHeight,
+                child: ClipRect(
+                  child: PageView.builder(
+                    key: ValueKey<bool>(_expanded),
+                    controller: _pageController,
+                    itemCount: _monthCount,
+                    onPageChanged: _onPageChanged,
+                    itemBuilder: (context, index) {
+                      return SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: _MonthGrid(
+                          month: _monthAt(index),
+                          selected: _selected,
+                          events: events,
+                          expanded: _expanded,
+                          palette: palette,
+                          onSelect: (date) =>
+                              setState(() => _selected = date),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+              _CalendarToggle(
+                palette: palette,
+                expanded: _expanded,
+                onTap: _toggleCalendar,
+              ),
+            ],
           ),
-        ),
-        _CalendarToggle(
-          palette: palette,
-          expanded: _expanded,
-          onTap: _toggleCalendar,
         ),
       ],
     );
@@ -388,19 +393,39 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
       child: Row(
         children: [
-          Text(
-            '${_relativeDays(_selected)}  ${_selected.month}月${_selected.day}日',
-            style: TextStyle(
-              color: palette.secondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  '${_relativeDays(_selected)}  ${_selected.month}月${_selected.day}日',
+                  style: TextStyle(
+                    color: palette.secondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    '农历${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: palette.secondary, fontSize: 13),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
-            '农历${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}',
-            style: TextStyle(color: palette.secondary, fontSize: 13),
+            '今日安排',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
+          Icon(Icons.keyboard_arrow_up, size: 18, color: palette.secondary),
         ],
       ),
     );
@@ -693,19 +718,25 @@ class _CalendarToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      key: const Key('schedule_calendar_toggle'),
-      onTap: onTap,
-      child: Container(
-        height: 24,
-        alignment: Alignment.center,
-        child: AnimatedRotation(
-          turns: expanded ? 0 : 0.5,
-          duration: const Duration(milliseconds: 220),
-          child: Icon(
-            Icons.keyboard_arrow_up,
-            size: 22,
-            color: palette.secondary,
+    return Semantics(
+      button: true,
+      label: expanded ? '收起日历为单周' : '展开日历为整月',
+      child: GestureDetector(
+        key: const Key('schedule_calendar_toggle'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          height: 30,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              width: expanded ? 44 : 32,
+              height: 4,
+              decoration: BoxDecoration(
+                color: palette.secondary.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
           ),
         ),
       ),
