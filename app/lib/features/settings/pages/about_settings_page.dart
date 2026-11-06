@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/app_info.dart';
 import '../../../core/widgets/hint_icon.dart';
 import 'semester_settings_page.dart' show SettingsSubPage;
-import 'update_settings_page.dart';
 
 /// 关于页。
 class AboutSettingsPage extends StatelessWidget {
@@ -59,23 +58,6 @@ class AboutSettingsPage extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: ListTile(
-              key: const Key('about_check_update'),
-              leading: Icon(Icons.system_update,
-                  color: theme.colorScheme.primary),
-              title: const Text('检查更新'),
-              subtitle: const Text('从 GitHub Releases 获取新版本，支持国内镜像加速'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const UpdateSettingsPage(),
-                ),
               ),
             ),
           ),
