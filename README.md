@@ -111,7 +111,8 @@ ColorOS 蓝强调色、胶囊按钮与浮动底栏，页面切换为淡入过渡
 
 - 深色/浅色自适应：近黑背景、24px 大圆角卡片、ColorOS 蓝强调色；
 - 顶部大号「2026年3月」标题 + 当前教学周，右侧 AI 与更多菜单；
-- **月历可左右滑动切月**，也可以上下拖动或点日历下方箭头，在整月与单周之间收缩；
+- **月历可左右滑动切月**；上下拖动日程区域时，日历随滚动距离连续收缩/展开，顶部标题固定；
+- 空日程和只有一条日程也能完整收缩，选中日期所在周连续移到顶部；点把手可切换整月/单周；
 - 每个日期显示农历 / 节气 / 节日，有日程的日期下方显示蓝点；
 - 选中日期显示「今天 / N 天后 / N 天前」、农历日期与当天日程；
 - 检测到重复日程时显示提示条，可一键合并；
@@ -208,7 +209,7 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
     下载目录默认在「下载\课序更新」。
   - **Android**：下载 `.apk` 后调起系统安装界面；当前环境不允许直接安装时
     （如没给「安装未知应用」权限），会**自动回退到浏览器打开 Release 页面**手动下载。
-- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.46+102`），
+- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.47+103`），
   App 内展示的版本由 `app/lib/core/app_info.dart` 统一提供，
   并有测试保证两者一致（见下方「发布新版本」）。
 - **只认正式版**：检查走 GitHub 的 `/releases/latest`，所以草稿（draft）与
@@ -425,17 +426,17 @@ lib/
 ### 已构建好的产物
 
 `tooling\build-all.ps1` 会把两个平台的产物按版本号归档到 `dist/`
-（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.46+102` → 文件名用 `v1.2.46`）。
+（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.47+103` → 文件名用 `v1.2.47`）。
 `dist/` 已在 `.gitignore` 里：**仓库只存源码，安装包作为 GitHub Release 资产上传**。
 
 | 平台 | 路径 | 说明 |
 |---|---|---|
-| Windows | `dist/windows/kexu-v1.2.46-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
-| Android | `dist/android/kexu-v1.2.46.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
+| Windows | `dist/windows/kexu-v1.2.47-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
+| Android | `dist/android/kexu-v1.2.47.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
 
-> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.46；
+> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.47；
 > 解压 zip 后直接双击 `course_timetable.exe` 即可运行。`dist/android/课表-v1.0.0.apk` 是历史版本，
-> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.46.apk`（归档文件名统一用 ASCII，
+> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.47.apk`（归档文件名统一用 ASCII，
 > 避免 gh CLI 上传时把中文文件名吃掉）。
 
 > 正式发布到应用商店前，请在 `app/android/app/build.gradle.kts` 里换成你自己的
@@ -512,7 +513,7 @@ pwsh -File tooling\build-all.ps1
 
 ```yaml
 # app/pubspec.yaml
-version: 1.2.46+102
+version: 1.2.47+103
 ```
 ```dart
 // app/lib/core/app_info.dart
@@ -528,8 +529,8 @@ pwsh -File tooling\build-all.ps1
 
 | 平台 | 路径 |
 |---|---|
-| Android | `dist/android/kexu-v1.2.46.apk` |
-| Windows | `dist/windows/kexu-v1.2.46-windows.zip`（整个 Release 目录压缩） |
+| Android | `dist/android/kexu-v1.2.47.apk` |
+| Windows | `dist/windows/kexu-v1.2.47-windows.zip`（整个 Release 目录压缩） |
 
 ### 3) 发布到 GitHub
 ```powershell
@@ -537,20 +538,20 @@ pwsh -File tooling\build-all.ps1
 pwsh -File tooling\release.ps1 -DryRun
 
 # 正式发布（默认会先构建；想复用已有 dist 资产就加 -SkipBuild）
-pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.46.md
+pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.47.md
 ```
 脚本做的事：校验 `-Version` 与 `pubspec.yaml` 一致 → 校验 git 仓库与 `gh` 登录状态 →
-（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.46 --title "课序 v1.2.46" ...`。
+（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.47 --title "课序 v1.2.47" ...`。
 它**不会**删除或覆盖已有 Release：同名 Release 已存在时直接报错退出，交给人决定。
 
 等价的手工命令（脚本内部就是这一条）：
 
 ```powershell
-gh release create v1.2.46 `
-  --title "课序 v1.2.46" `
-  --notes-file docs\release-notes-v1.2.46.md `
-  "dist\android\kexu-v1.2.46.apk" `
-  "dist\windows\kexu-v1.2.46-windows.zip"
+gh release create v1.2.47 `
+  --title "课序 v1.2.47" `
+  --notes-file docs\release-notes-v1.2.47.md `
+  "dist\android\kexu-v1.2.47.apk" `
+  "dist\windows\kexu-v1.2.47-windows.zip"
 ```
 
 > 仓库已初始化并推送到 **https://github.com/NKBaa/kexu**（`main` 分支，`origin` 已配好）。
@@ -564,10 +565,10 @@ App 用 GitHub API `GET /releases/latest` 取最新 Release，再按平台挑安
 
 - **Android**：只认 `.apk`；多个时优先文件名含 `android` / `arm64` / `universal` 的。
 - **Windows**：`.exe` 优先，其次 `.zip`；多个时优先含 `windows` / `win` / `setup` / `x64` 的。
-  所以 Windows 打包成 `kexu-v1.2.46-windows.zip` 能被正确匹配（名字里有 `windows`）；
+  所以 Windows 打包成 `kexu-v1.2.47-windows.zip` 能被正确匹配（名字里有 `windows`）；
   因为不是 `.exe`，下载后是「打开所在文件夹，解压后运行」。
 - 没有匹配资产时，更新页会提示「这个 Release 没有匹配当前平台的安装包」，可到 GitHub 手动下载。
-- 版本比较用 Release 的 **tag**（`v1.2.46`）与 App 内的 `1.2.46+102` 比较，**相等不算更新**。
+- 版本比较用 Release 的 **tag**（`v1.2.47`）与 App 内的 `1.2.47+103` 比较，**相等不算更新**。
 
 ### 5) 国内镜像与 GitHub API
 App 侧的镜像只做 URL 前缀拼接，不改变 API 语义：
@@ -710,7 +711,7 @@ $env:COURSE_TIMETABLE_DATA_DIR = 'D:\课表数据'
 
 ```powershell
 cd C:\dev\kt
-flutter test        # 703 个用例：697 通过 / 6 默认跳过（WebDAV 端到端用例需真实网盘，默认跳过）
+flutter test        # 705 个用例：699 通过 / 6 默认跳过（WebDAV 端到端用例需真实网盘，默认跳过）
 flutter analyze     # 应输出 No issues found!
 ```
 

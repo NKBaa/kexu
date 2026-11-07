@@ -27,15 +27,12 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   static const int _monthCount = 2400;
   static const double _collapsedHeight = 52;
   static const double _expandedHeight = 52 * 6;
-  static const double _collapseDistance = 160;
+  static const double _collapseDistance = _expandedHeight - _collapsedHeight;
 
   late DateTime _month;
   late DateTime _selected;
   late final PageController _pageController;
   late final ScrollController _agendaController;
-  bool _expanded = true;
-  bool _dragging = false;
-  double _calendarHeight = _expandedHeight;
 
   @override
   void initState() {
@@ -44,8 +41,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     _month = DateTime(now.year, now.month);
     _selected = DateTime(now.year, now.month, now.day);
     _pageController = PageController(initialPage: _indexOf(_month));
-    _agendaController = ScrollController()
-      ..addListener(_syncCalendarToScroll);
+    _agendaController = ScrollController();
   }
 
   @override
@@ -55,8 +51,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     super.dispose();
   }
 
-  int _indexOf(DateTime date) =>
-      (date.year - _firstYear) * 12 + date.month - 1;
+  int _indexOf(DateTime date) => (date.year - _firstYear) * 12 + date.month - 1;
 
   DateTime _monthAt(int index) =>
       DateTime(_firstYear + index ~/ 12, index % 12 + 1);
@@ -101,10 +96,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   Future<void> _openEditor({ScheduleEvent? event}) async {
     final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
-        builder: (_) => ScheduleEventEditorPage(
-          initialDate: _selected,
-          initial: event,
-        ),
+        builder: (_) =>
+            ScheduleEventEditorPage(initialDate: _selected, initial: event),
       ),
     );
     if (changed == true && mounted) {
@@ -113,9 +106,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   }
 
   Future<void> _openAi() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AiEditPage()),
-    );
+    await Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const AiEditPage()));
   }
 
   Future<void> _mergeDuplicates(List<ScheduleEvent> events) async {
@@ -143,9 +135,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       body: SafeArea(
         bottom: false,
         child: async.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(color: palette.accent),
-          ),
+          loading: () =>
+              Center(child: CircularProgressIndicator(color: palette.accent)),
           error: (e, st) => Center(
             child: Text(
               '读取日程失败：$e',
@@ -177,52 +168,52 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         ? null
         : weekOfDate(_selected, timetable.semester.startMonday);
     final duplicates = _duplicateCount(events);
-    // 顶部标题栏与日历固定；只有下方「日程显示」区域滚动。
-    // 向下滚动日程时日历收缩成单周，回到顶部时再展开。
     return Column(
       children: [
         _buildHeader(palette, week, duplicates > 0),
-        _buildCalendar(palette, events),
-        const SizedBox(height: 4),
         Expanded(
-          child: ListView(
+          child: CustomScrollView(
             key: const Key('schedule_list'),
             controller: _agendaController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 120),
-            children: [
-              _buildDaySummary(palette),
-              if (duplicates > 0) ...[
-                const SizedBox(height: 10),
-                _buildDuplicateBanner(palette, duplicates, events),
-              ],
-              const SizedBox(height: 18),
-              _buildDayEvents(palette, events),
+            physics: const ClampingScrollPhysics(),
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _CalendarHeaderDelegate(
+                  builder: (context, shrinkOffset) =>
+                      _buildCalendar(palette, events, shrinkOffset),
+                ),
+              ),
+              SliverLayoutBuilder(
+                builder: (context, constraints) => SliverToBoxAdapter(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: (constraints.viewportMainAxisExtent - 106)
+                          .clamp(0.0, double.infinity),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 120),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildDaySummary(palette),
+                          if (duplicates > 0) ...[
+                            const SizedBox(height: 10),
+                            _buildDuplicateBanner(palette, duplicates, events),
+                          ],
+                          const SizedBox(height: 18),
+                          _buildDayEvents(palette, events),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ],
     );
-  }
-
-  /// 日历高度直接跟随日程列表的滚动距离：
-  /// 0px = 整月，[_collapseDistance]px = 单周，中间按手指位置线性收缩。
-  void _syncCalendarToScroll() {
-    if (!_agendaController.hasClients) return;
-    final offset = _agendaController.offset;
-    final progress = (offset / _collapseDistance).clamp(0.0, 1.0);
-    final height = _expandedHeight +
-        (_collapsedHeight - _expandedHeight) * progress;
-    final fullyCollapsed = progress >= 0.999;
-    final fullyExpanded = progress <= 0.001;
-    setState(() {
-      _calendarHeight = height;
-      if (fullyCollapsed) {
-        _expanded = false;
-      } else if (fullyExpanded) {
-        _expanded = true;
-      }
-    });
   }
 
   Widget _buildHeader(ColorOsPalette palette, int? week, bool hasDuplicates) {
@@ -302,7 +293,11 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
             ),
             onSelected: (value) {
               if (value == 'today') _goToday();
-              if (value == 'merge') _mergeDuplicates(ref.read(scheduleEventsProvider).valueOrNull ?? const []);
+              if (value == 'merge') {
+                _mergeDuplicates(
+                  ref.read(scheduleEventsProvider).valueOrNull ?? const [],
+                );
+              }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -326,104 +321,93 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     );
   }
 
-  void _setCalendarExpanded(bool expand) {
-    setState(() {
-      _expanded = expand;
-      _calendarHeight = expand ? _expandedHeight : _collapsedHeight;
-    });
-    // 手动切换时同步日程列表的滚动位置，避免下一次滚动把日历拉回去。
-    if (_agendaController.hasClients) {
-      final target = expand ? 0.0 : _collapseDistance;
-      if (target <= _agendaController.position.maxScrollExtent) {
-        _agendaController.jumpTo(target);
-      }
-    }
+  void _toggleCalendar() {
+    if (!_agendaController.hasClients) return;
+    final target = _agendaController.offset >= _collapseDistance / 2
+        ? 0.0
+        : _collapseDistance;
+    _agendaController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
   }
 
-  void _toggleCalendar() => _setCalendarExpanded(!_expanded);
-
-  Widget _buildCalendar(ColorOsPalette palette, List<ScheduleEvent> events) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Row(
-            children: [
-              for (final name in const ['日', '一', '二', '三', '四', '五', '六'])
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      name,
-                      style: TextStyle(
-                        color: palette.secondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+  Widget _buildCalendar(
+    ColorOsPalette palette,
+    List<ScheduleEvent> events,
+    double shrinkOffset,
+  ) {
+    final progress = (shrinkOffset / _collapseDistance).clamp(0.0, 1.0);
+    final height = _expandedHeight - _collapseDistance * progress;
+    return ColoredBox(
+      color: palette.background,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 24,
+            child: Row(
+              children: [
+                for (final name in const ['日', '一', '二', '三', '四', '五', '六'])
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          color: palette.secondary,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onVerticalDragStart: (_) => setState(() => _dragging = true),
-          onVerticalDragUpdate: (details) {
-            setState(() {
-              _calendarHeight = (_calendarHeight + details.delta.dy)
-                  .clamp(_collapsedHeight, _expandedHeight);
-            });
-          },
-          onVerticalDragEnd: (details) {
-            final velocity = details.primaryVelocity ?? 0;
-            final midpoint = (_collapsedHeight + _expandedHeight) / 2;
-            final expand = velocity.abs() > 220
-                ? velocity > 0
-                : _calendarHeight > midpoint;
-            _setCalendarExpanded(expand);
-            setState(() => _dragging = false);
-          },
-          child: Column(
-            children: [
-              AnimatedContainer(
-                duration: _dragging
-                    ? Duration.zero
-                    : const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
-                height: _calendarHeight,
-                child: ClipRect(
-                  child: PageView.builder(
-                    key: ValueKey<bool>(_expanded),
-                    controller: _pageController,
-                    itemCount: _monthCount,
-                    onPageChanged: _onPageChanged,
-                    itemBuilder: (context, index) {
-                      return SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: _MonthGrid(
-                          month: _monthAt(index),
-                          selected: _selected,
-                          events: events,
-                          expanded: _expanded,
-                          palette: palette,
-                          onSelect: (date) =>
-                              setState(() => _selected = date),
-                        ),
-                      );
-                    },
+          SizedBox(
+            height: height,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _monthCount,
+              onPageChanged: _onPageChanged,
+              itemBuilder: (context, index) {
+                final month = _monthAt(index);
+                final day = _selected.day.clamp(
+                  1,
+                  DateTime(month.year, month.month + 1, 0).day,
+                );
+                final row =
+                    ((DateTime(month.year, month.month).weekday % 7 +
+                        day -
+                        1) ~/
+                    7);
+                return ClipRect(
+                  child: OverflowBox(
+                    alignment: Alignment.topCenter,
+                    minHeight: _expandedHeight,
+                    maxHeight: _expandedHeight,
+                    child: Transform.translate(
+                      offset: Offset(0, -row * 52 * progress),
+                      child: _MonthGrid(
+                        month: month,
+                        selected: _selected,
+                        events: events,
+                        expanded: true,
+                        palette: palette,
+                        onSelect: (date) => setState(() => _selected = date),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              _CalendarToggle(
-                palette: palette,
-                expanded: _expanded,
-                onTap: _toggleCalendar,
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        ),
-      ],
+          _CalendarToggle(
+            palette: palette,
+            expanded: progress < 0.5,
+            onTap: _toggleCalendar,
+          ),
+        ],
+      ),
     );
   }
 
@@ -529,8 +513,11 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
           child: Column(
             children: [
-              Icon(Icons.event_available_outlined,
-                  color: palette.secondary, size: 32),
+              Icon(
+                Icons.event_available_outlined,
+                color: palette.secondary,
+                size: 32,
+              ),
               const SizedBox(height: 10),
               Text(
                 '这一天还没有日程',
@@ -642,7 +629,9 @@ class _MonthGrid extends StatelessWidget {
                     date: date,
                     selected: ScheduleEvent.formatDateKey(date) == selectedKey,
                     today: ScheduleEvent.formatDateKey(date) == todayKey,
-                    hasEvent: eventKeys.contains(ScheduleEvent.formatDateKey(date)),
+                    hasEvent: eventKeys.contains(
+                      ScheduleEvent.formatDateKey(date),
+                    ),
                     palette: palette,
                     onTap: () => onSelect(date),
                   ),
@@ -714,7 +703,9 @@ class _DayCell extends StatelessWidget {
               style: TextStyle(
                 color: selected ? Colors.white : palette.text,
                 fontSize: 16,
-                fontWeight: selected || today ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: selected || today
+                    ? FontWeight.w700
+                    : FontWeight.w500,
               ),
             ),
           ),
@@ -898,12 +889,32 @@ String _lunarLabel(DateTime date) {
   final label = festivals.isNotEmpty
       ? festivals.first
       : (lunar.getJieQi().isNotEmpty
-          ? lunar.getJieQi()
-          : (date.day == 1
-              ? '${lunar.getMonthInChinese()}月'
-              : lunar.getDayInChinese()));
+            ? lunar.getJieQi()
+            : (date.day == 1
+                  ? '${lunar.getMonthInChinese()}月'
+                  : lunar.getDayInChinese()));
   _lunarCache[key] = label;
   return label;
 }
 
 final Map<String, String> _lunarCache = <String, String>{};
+
+/// A single scroll geometry drives both calendar collapse and agenda movement.
+/// The agenda's minimum height reserves the collapse range even when empty.
+class _CalendarHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _CalendarHeaderDelegate({required this.builder});
+  final Widget Function(BuildContext, double) builder;
+
+  @override
+  double get maxExtent => 24 + 312 + 30;
+  @override
+  double get minExtent => 24 + 52 + 30;
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => builder(context, shrinkOffset);
+  @override
+  bool shouldRebuild(covariant _CalendarHeaderDelegate oldDelegate) => true;
+}
