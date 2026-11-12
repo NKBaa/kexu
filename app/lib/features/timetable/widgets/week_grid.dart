@@ -22,7 +22,7 @@ import 'course_card.dart';
 ///   一屏放下，只有窄到列宽不足时外层才退化为横向滚动；
 /// - [showWeekend] 为 false 时只渲染周一到周五（设置里的「显示周六、周日」）。
 /// - **长按**课程卡片可打开编辑页修改课程信息；
-/// - **拖动**课程卡片可调整它占用的节次（保持跨节数不变，星期不变）。
+/// - **长按拖动柄后拖动**可调整课程的星期与节次（保持跨节数不变）。
 class WeekGrid extends StatelessWidget {
   const WeekGrid({
     super.key,
@@ -779,7 +779,7 @@ class _DayColumnState extends State<_DayColumn> {
 
   /// 把卡片包成可拖动的（同一周内可拖到任意星期 / 节次）。
   ///
-  /// 只有右下角的「拖动柄」能发起拖动，卡片正文的点击/长按仍分别用于
+  /// 只有长按右下角的「拖动柄」后才能发起拖动，卡片正文的点击/长按仍分别用于
   /// 查看详情和编辑课程，避免手指在课表上滑动时误触拖动。
   Widget _draggableCard(
     Widget card,
@@ -818,8 +818,9 @@ class _DayColumnState extends State<_DayColumn> {
           right: 2,
           bottom: 2,
           child: Tooltip(
-            message: '按住拖动调整节次',
-            child: Draggable<_DragSession>(
+            message: '长按后拖动调整节次',
+            triggerMode: TooltipTriggerMode.manual,
+            child: LongPressDraggable<_DragSession>(
               data: data,
               feedback: feedback,
               // 手指按在右下角手柄上时，让反馈卡片的左上角对齐原卡片左上角，

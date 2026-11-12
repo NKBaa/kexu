@@ -16,6 +16,7 @@ import 'package:course_timetable/features/settings/pages/update_settings_page.da
 import 'package:course_timetable/features/settings/providers/settings_provider.dart';
 import 'package:course_timetable/features/timetable/providers/timetable_provider.dart';
 import 'package:course_timetable/features/timetable/widgets/week_grid.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -331,7 +332,11 @@ void main() {
 
     final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
     expect(handle, findsOneWidget);
-    await tester.drag(handle, const Offset(105, 0));
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
+    await gesture.moveBy(const Offset(105, 0));
+    await tester.pump();
+    await gesture.up();
     await settle(tester);
 
     final timetable = container.read(timetableProvider).value!;

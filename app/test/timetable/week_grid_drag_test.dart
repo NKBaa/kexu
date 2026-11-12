@@ -4,6 +4,7 @@ import 'package:course_timetable/data/models/semester.dart';
 import 'package:course_timetable/data/models/timetable.dart';
 import 'package:course_timetable/features/timetable/widgets/course_card.dart';
 import 'package:course_timetable/features/timetable/widgets/week_grid.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -117,7 +118,7 @@ void main() {
 
     final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
     final gesture = await tester.startGesture(tester.getCenter(handle));
-    await tester.pump();
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
     // 向右一列（800-时间轴 64 后 7 列，每列约 105）+ 向下 240px（4 节）。
     await gesture.moveBy(const Offset(105, 240));
     await tester.pump();
@@ -134,9 +135,10 @@ void main() {
     expect(newEnd, 6);
   });
 
-  testWidgets('拖动课程卡片到其他节次会回调新的起止节次', (tester) async {
+  testWidgets('拖动柄短按或直接拖动不改课，长按后可调整节次', (tester) async {
     Course? changedCourse;
     Session? changedSession;
+    var editCount = 0;
     int? newStart;
     int? newEnd;
     int? targetDay;
@@ -152,6 +154,7 @@ void main() {
               timetable: _timetable(),
               week: 1,
               minRowHeight: 60,
+              onLongPress: (course, session) => editCount++,
               onPeriodsChanged: (course, session, start, end, day) {
                 changedCourse = course;
                 changedSession = session;
@@ -173,11 +176,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(changedCourse, isNull);
 
-    // 只有右下角拖动柄能发起拖动：60px/节，向下拖 4 节（240px），1-2 节应变成 5-6 节。
-    await tester.drag(
-      find.byKey(const ValueKey('course_drag_handle_s1')),
-      const Offset(0, 240),
-    );
+    final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
+
+    // 短按及未等到长按阈值就移动，都不能启动拖动或打开编辑页。
+    await tester.tap(handle);
+    await tester.pumpAndSettle();
+    expect(find.byType(CourseCard), findsOneWidget);
+    expect(changedCourse, isNull);
+    expect(editCount, 0);
+
+    final shortPress = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout - const Duration(milliseconds: 1));
+    expect(find.byType(CourseCard), findsOneWidget);
+    await shortPress.moveBy(const Offset(0, 240));
+    await tester.pump(kLongPressTimeout);
+    expect(find.byType(CourseCard), findsOneWidget);
+    await shortPress.up();
+    await tester.pumpAndSettle();
+    expect(changedCourse, isNull);
+    expect(editCount, 0);
+
+    await tester.drag(handle, const Offset(0, 240));
+    await tester.pumpAndSettle();
+    expect(changedCourse, isNull);
+    expect(editCount, 0);
+
+    // 长按手柄后，向下拖 4 节（240px），1-2 节应变成 5-6 节。
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
+    expect(find.byType(CourseCard), findsNWidgets(2));
+    expect(editCount, 0);
+    await gesture.moveBy(const Offset(0, 240));
+    await tester.pump();
+    await gesture.up();
     await tester.pumpAndSettle();
 
     expect(changedCourse?.name, '高等数学');

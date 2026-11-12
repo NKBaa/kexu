@@ -69,7 +69,7 @@ ColorOS 蓝强调色、胶囊按钮与浮动底栏，页面切换为淡入过渡
 - **作息模板托管在 GitHub**：先按学校浏览，进入学校查看详细作息，支持整套导入、搜索与内置加速镜像。
 - 课表**课程卡片与课程详情的「节次」**也显示该时段作息时间（如 `08:00-09:40`）。
 - 课表支持**左右划动切换周次**，并带滑入 + 淡入动效。
-- **长按课程卡片**可直接打开编辑页修改课程信息；**拖动卡片右下角的拖动柄**可在同一周内
+- **长按课程卡片**可直接打开编辑页修改课程信息；**长按卡片右下角的拖动柄后拖动**可在同一周内
   自由拖到任意星期与节次（保持跨节数不变，拖出上下边界会自动贴边；拖动时显示目标时间段，
   拖卡片正文不会误触）。
 - **长按课表空白单元格**会在点击的星期与节次打开新增课程页，星期和节次已预填；
@@ -209,7 +209,7 @@ Android 与 Windows 之间通过网盘同步课表，**按课程粒度做三方�
     下载目录默认在「下载\课序更新」。
   - **Android**：下载 `.apk` 后调起系统安装界面；当前环境不允许直接安装时
     （如没给「安装未知应用」权限），会**自动回退到浏览器打开 Release 页面**手动下载。
-- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.47+103`），
+- **版本号来源**：`app/pubspec.yaml` 的 `version`（当前 `1.2.48+104`），
   App 内展示的版本由 `app/lib/core/app_info.dart` 统一提供，
   并有测试保证两者一致（见下方「发布新版本」）。
 - **只认正式版**：检查走 GitHub 的 `/releases/latest`，所以草稿（draft）与
@@ -423,24 +423,22 @@ lib/
 
 ## 运行与构建
 
-### 已构建好的产物
+### 构建产物
 
 `tooling\build-all.ps1` 会把两个平台的产物按版本号归档到 `dist/`
-（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.47+103` → 文件名用 `v1.2.47`）。
+（版本号取 `app/pubspec.yaml` 的 `version`，当前 `1.2.48+104` → 文件名用 `v1.2.48`）。
 `dist/` 已在 `.gitignore` 里：**仓库只存源码，安装包作为 GitHub Release 资产上传**。
 
 | 平台 | 路径 | 说明 |
 |---|---|---|
-| Windows | `dist/windows/kexu-v1.2.47-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
-| Android | `dist/android/kexu-v1.2.47.apk` | 传到手机安装（约 56 MB，当前用 debug 签名，仅供自用） |
+| Windows | `dist/windows/kexu-v1.2.48-windows.zip` | 整个 Release 目录压缩，解压后双击 `course_timetable.exe` 免安装运行 |
+| Android | `dist/android/kexu-v1.2.48.apk` | 使用固定发布签名，传到手机安装 |
 
-> `dist/windows/` 下的解包目录（`course_timetable.exe` + `data/`）与 zip 内容一致，是 v1.2.47；
-> 解压 zip 后直接双击 `course_timetable.exe` 即可运行。`dist/android/课表-v1.0.0.apk` 是历史版本，
-> 保留作回滚用；当前版本是 `dist/android/kexu-v1.2.47.apk`（归档文件名统一用 ASCII，
-> 避免 gh CLI 上传时把中文文件名吃掉）。
+> 上表列出当前源码版本的构建产物路径；请先构建，再上传安装包。
+> Windows zip 解压后双击 `course_timetable.exe` 即可运行。归档文件名统一用 ASCII。
 
-> 正式发布到应用商店前，请在 `app/android/app/build.gradle.kts` 里换成你自己的
-> release 签名配置（当前用的是 debug 签名，方便直接安装试用）。
+> Android 发布构建需要配置本机 `app/android/key.properties`，沿用固定发布密钥；
+> 签名配置和密钥不提交到仓库。
 
 ### 环境要求
 - Flutter SDK（stable）
@@ -513,12 +511,12 @@ pwsh -File tooling\build-all.ps1
 
 ```yaml
 # app/pubspec.yaml
-version: 1.2.47+103
+version: 1.2.48+104
 ```
 ```dart
 // app/lib/core/app_info.dart
-const String appVersion = '1.1.1';
-const int appBuildNumber = 3;
+const String appVersion = '1.2.48';
+const int appBuildNumber = 104;
 ```
 
 ### 2) 构建并归档
@@ -529,8 +527,8 @@ pwsh -File tooling\build-all.ps1
 
 | 平台 | 路径 |
 |---|---|
-| Android | `dist/android/kexu-v1.2.47.apk` |
-| Windows | `dist/windows/kexu-v1.2.47-windows.zip`（整个 Release 目录压缩） |
+| Android | `dist/android/kexu-v1.2.48.apk` |
+| Windows | `dist/windows/kexu-v1.2.48-windows.zip`（整个 Release 目录压缩） |
 
 ### 3) 发布到 GitHub
 ```powershell
@@ -538,20 +536,20 @@ pwsh -File tooling\build-all.ps1
 pwsh -File tooling\release.ps1 -DryRun
 
 # 正式发布（默认会先构建；想复用已有 dist 资产就加 -SkipBuild）
-pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.47.md
+pwsh -File tooling\release.ps1 -NotesFile docs\release-notes-v1.2.48.md
 ```
 脚本做的事：校验 `-Version` 与 `pubspec.yaml` 一致 → 校验 git 仓库与 `gh` 登录状态 →
-（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.47 --title "课序 v1.2.47" ...`。
+（可选）构建 → 校验 `dist/` 资产存在 → `gh release create v1.2.48 --title "课序 v1.2.48" ...`。
 它**不会**删除或覆盖已有 Release：同名 Release 已存在时直接报错退出，交给人决定。
 
 等价的手工命令（脚本内部就是这一条）：
 
 ```powershell
-gh release create v1.2.47 `
-  --title "课序 v1.2.47" `
-  --notes-file docs\release-notes-v1.2.47.md `
-  "dist\android\kexu-v1.2.47.apk" `
-  "dist\windows\kexu-v1.2.47-windows.zip"
+gh release create v1.2.48 `
+  --title "课序 v1.2.48" `
+  --notes-file docs\release-notes-v1.2.48.md `
+  "dist\android\kexu-v1.2.48.apk" `
+  "dist\windows\kexu-v1.2.48-windows.zip"
 ```
 
 > 仓库已初始化并推送到 **https://github.com/NKBaa/kexu**（`main` 分支，`origin` 已配好）。
@@ -565,10 +563,10 @@ App 用 GitHub API `GET /releases/latest` 取最新 Release，再按平台挑安
 
 - **Android**：只认 `.apk`；多个时优先文件名含 `android` / `arm64` / `universal` 的。
 - **Windows**：`.exe` 优先，其次 `.zip`；多个时优先含 `windows` / `win` / `setup` / `x64` 的。
-  所以 Windows 打包成 `kexu-v1.2.47-windows.zip` 能被正确匹配（名字里有 `windows`）；
+  所以 Windows 打包成 `kexu-v1.2.48-windows.zip` 能被正确匹配（名字里有 `windows`）；
   因为不是 `.exe`，下载后是「打开所在文件夹，解压后运行」。
 - 没有匹配资产时，更新页会提示「这个 Release 没有匹配当前平台的安装包」，可到 GitHub 手动下载。
-- 版本比较用 Release 的 **tag**（`v1.2.47`）与 App 内的 `1.2.47+103` 比较，**相等不算更新**。
+- 版本比较用 Release 的 **tag**（`v1.2.48`）与 App 内的 `1.2.48+104` 比较，**相等不算更新**。
 
 ### 5) 国内镜像与 GitHub API
 App 侧的镜像只做 URL 前缀拼接，不改变 API 语义：
