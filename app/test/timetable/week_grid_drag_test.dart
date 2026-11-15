@@ -2,7 +2,6 @@ import 'package:course_timetable/core/theme.dart';
 import 'package:course_timetable/data/models/course.dart';
 import 'package:course_timetable/data/models/semester.dart';
 import 'package:course_timetable/data/models/timetable.dart';
-import 'package:course_timetable/features/timetable/widgets/course_card.dart';
 import 'package:course_timetable/features/timetable/widgets/week_grid.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -116,8 +115,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
-    final gesture = await tester.startGesture(tester.getCenter(handle));
+    final card = find.byKey(const ValueKey('course_drag_surface_s1'));
+    final gesture = await tester.startGesture(tester.getCenter(card));
     await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
     // 向右一列（800-时间轴 64 后 7 列，每列约 105）+ 向下 240px（4 节）。
     await gesture.moveBy(const Offset(105, 240));
@@ -135,7 +134,7 @@ void main() {
     expect(newEnd, 6);
   });
 
-  testWidgets('拖动柄短按或直接拖动不改课，长按后可调整节次', (tester) async {
+  testWidgets('整卡短按编辑、按住显示进度、长按后拖动', (tester) async {
     Course? changedCourse;
     Session? changedSession;
     var editCount = 0;
@@ -154,7 +153,7 @@ void main() {
               timetable: _timetable(),
               week: 1,
               minRowHeight: 60,
-              onLongPress: (course, session) => editCount++,
+              onTap: (course, session) => editCount++,
               onPeriodsChanged: (course, session, start, end, day) {
                 changedCourse = course;
                 changedSession = session;
@@ -169,43 +168,50 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final card = find.byKey(const ValueKey('course_drag_surface_s1'));
+    expect(card, findsOneWidget);
     expect(find.text('高等数学'), findsOneWidget);
 
-    // 直接拖卡片正文不应触发拖动（防止课表滚动时误触）。
-    await tester.drag(find.byType(CourseCard), const Offset(0, 240));
+    // 短按进入编辑，不触发拖动。
+    await tester.tap(card);
     await tester.pumpAndSettle();
+    expect(editCount, 1);
     expect(changedCourse, isNull);
 
-    final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
-
-    // 短按及未等到长按阈值就移动，都不能启动拖动或打开编辑页。
-    await tester.tap(handle);
-    await tester.pumpAndSettle();
-    expect(find.byType(CourseCard), findsOneWidget);
-    expect(changedCourse, isNull);
-    expect(editCount, 0);
-
-    final shortPress = await tester.startGesture(tester.getCenter(handle));
-    await tester.pump(kLongPressTimeout - const Duration(milliseconds: 1));
-    expect(find.byType(CourseCard), findsOneWidget);
+    // 按住未到阈值时显示环形进度；此时移动会取消按压。
+    final shortPress = await tester.startGesture(tester.getCenter(card));
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(
+      find.byKey(const ValueKey('course_hold_progress_s1')),
+      findsOneWidget,
+    );
     await shortPress.moveBy(const Offset(0, 240));
-    await tester.pump(kLongPressTimeout);
-    expect(find.byType(CourseCard), findsOneWidget);
+    await tester.pumpAndSettle();
     await shortPress.up();
     await tester.pumpAndSettle();
     expect(changedCourse, isNull);
-    expect(editCount, 0);
+    expect(editCount, 1);
 
-    await tester.drag(handle, const Offset(0, 240));
+    // 瞬间拖动仍按普通滑动手势处理，不会误改课程。
+    await tester.drag(card, const Offset(0, 240));
     await tester.pumpAndSettle();
     expect(changedCourse, isNull);
-    expect(editCount, 0);
+    expect(editCount, 1);
 
-    // 长按手柄后，向下拖 4 节（240px），1-2 节应变成 5-6 节。
-    final gesture = await tester.startGesture(tester.getCenter(handle));
-    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
-    expect(find.byType(CourseCard), findsNWidgets(2));
-    expect(editCount, 0);
+    // 长按整张卡片后显示拖动浮层，再移向下 4 节，1-2 节变为 5-6 节。
+    final gesture = await tester.startGesture(tester.getCenter(card));
+    await tester.pump(kLongPressTimeout - const Duration(milliseconds: 100));
+    expect(
+      find.byKey(const ValueKey('course_hold_progress_s1')),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(milliseconds: 101));
+    expect(
+      find.byKey(const ValueKey('course_drag_feedback_s1')),
+      findsOneWidget,
+    );
+    expect(find.text('拖动中'), findsOneWidget);
+    expect(editCount, 1);
     await gesture.moveBy(const Offset(0, 240));
     await tester.pump();
     await gesture.up();
@@ -216,5 +222,6 @@ void main() {
     expect(targetDay, 1);
     expect(newStart, 5);
     expect(newEnd, 6);
+    expect(editCount, 1);
   });
 }

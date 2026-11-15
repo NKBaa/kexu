@@ -719,8 +719,8 @@ class _OnboardingWizardPageState extends ConsumerState<OnboardingWizardPage> {
         const SizedBox(height: 8),
         const _GuideCard(
           icon: Icons.drag_indicator,
-          title: '长按编辑，拖动调整',
-          description: '长按课程卡片进入编辑；长按卡片右下角的拖动柄后，可把课程拖到其它星期或节次。',
+          title: '短按编辑，长按拖动',
+          description: '短按课程卡片进入编辑；按住整张卡片，进度圆环走满后可拖到其它星期或节次。',
         ),
         const SizedBox(height: 8),
         const _GuideCard(

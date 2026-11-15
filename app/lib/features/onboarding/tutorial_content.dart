@@ -102,9 +102,9 @@ class _TutorialChapter {
         ),
         _TutorialAction(
           icon: Icons.drag_indicator,
-          title: '拖动换时间',
-          description: '长按卡片右下角的拖动柄后，把课程拖到其它星期或节次；松手即保存。',
-          path: '课程卡片右下角',
+          title: '按住拖动',
+          description: '短按编辑课程；按住整张卡片，进度圆环走满后拖到其它星期或节次，松手即保存。',
+          path: '整张课程卡片',
         ),
         _TutorialAction(
           icon: Icons.layers_outlined,

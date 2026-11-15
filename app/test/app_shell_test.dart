@@ -323,16 +323,16 @@ void main() {
     expect(find.textContaining('第 1 周'), findsOneWidget);
   });
 
-  testWidgets('拖动柄横向跨天不会误触发周次切换', (tester) async {
+  testWidgets('长按整卡横向跨天不会误触发周次切换', (tester) async {
     await pumpApp(tester, seed: sampleTimetable());
     final container = ProviderScope.containerOf(
       tester.element(find.byType(HomeShell)),
     );
     final beforeWeek = container.read(currentWeekProvider);
 
-    final handle = find.byKey(const ValueKey('course_drag_handle_s1'));
-    expect(handle, findsOneWidget);
-    final gesture = await tester.startGesture(tester.getCenter(handle));
+    final card = find.byKey(const ValueKey('course_drag_surface_s1'));
+    expect(card, findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(card));
     await tester.pump(kLongPressTimeout + const Duration(milliseconds: 1));
     await gesture.moveBy(const Offset(105, 0));
     await tester.pump();
@@ -341,7 +341,7 @@ void main() {
 
     final timetable = container.read(timetableProvider).value!;
     final session = timetable.courses.first.sessions.first;
-    expect(session.dayOfWeek, 2, reason: '拖动柄应能在同一周内跨天移动');
+    expect(session.dayOfWeek, 2, reason: '长按整张课程卡片后应能跨天移动');
     expect(container.read(currentWeekProvider), beforeWeek, reason: '拖动课程不应切换周次');
     final notice = find.byKey(const ValueKey('app_notice'));
     expect(notice, findsOneWidget);

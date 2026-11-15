@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,15 +22,14 @@ import 'course_card.dart';
 /// - 列宽由 `Expanded` 均分；手机竖屏默认按可用宽度均分，让 7 天（隐藏周末时 5 天）
 ///   一屏放下，只有窄到列宽不足时外层才退化为横向滚动；
 /// - [showWeekend] 为 false 时只渲染周一到周五（设置里的「显示周六、周日」）。
-/// - **长按**课程卡片可打开编辑页修改课程信息；
-/// - **长按拖动柄后拖动**可调整课程的星期与节次（保持跨节数不变）。
+/// - **短按**课程卡片可打开编辑页修改课程信息；
+/// - **长按整张卡片后拖动**可调整课程的星期与节次（保持跨节数不变）。
 class WeekGrid extends StatelessWidget {
   const WeekGrid({
     super.key,
     required this.timetable,
     required this.week,
     this.onTap,
-    this.onLongPress,
     this.onBlankRangeSelected,
     this.onPeriodsChanged,
     this.today,
@@ -44,11 +44,8 @@ class WeekGrid extends StatelessWidget {
   /// 当前显示的周次（1-based）。
   final int week;
 
-  /// 卡片点击回调。
+  /// 卡片短按回调（编辑课程信息）。
   final void Function(Course, Session)? onTap;
-
-  /// 卡片长按回调（编辑课程信息）。
-  final void Function(Course, Session)? onLongPress;
 
   /// 长按空白处并拖动选择节次范围后回调（星期 1~7，start/end 1-based，含两端）。
   final void Function(int dayOfWeek, int startPeriod, int endPeriod)?
@@ -183,7 +180,6 @@ class WeekGrid extends StatelessWidget {
                   isToday: todayDow == day,
                   isHoliday: holidayDays.contains(day),
                   onTap: onTap,
-                  onLongPress: onLongPress,
                   onBlankRangeSelected: onBlankRangeSelected,
                   onPeriodsChanged: onPeriodsChanged,
                 ),
@@ -442,7 +438,6 @@ class _DayColumn extends StatefulWidget {
     required this.isToday,
     required this.isHoliday,
     required this.onTap,
-    required this.onLongPress,
     required this.onBlankRangeSelected,
     required this.onPeriodsChanged,
   });
@@ -455,7 +450,6 @@ class _DayColumn extends StatefulWidget {
   final bool isToday;
   final bool isHoliday;
   final void Function(Course, Session)? onTap;
-  final void Function(Course, Session)? onLongPress;
   final void Function(int dayOfWeek, int startPeriod, int endPeriod)?
       onBlankRangeSelected;
   final void Function(Course, Session, int, int, int)? onPeriodsChanged;
@@ -764,12 +758,9 @@ class _DayColumnState extends State<_DayColumn> {
             session: session,
             timeLabel: timeLabel,
             onTap: widget.onTap,
-            onLongPress: widget.onLongPress,
             conflicting: conflicted.contains(session.id),
           ),
           placed.entry,
-          // 窄卡片放不下拖动手柄，也避免手柄盖住文字；这类卡片仍可长按编辑。
-          showHandle: width >= 30 && cardHeight >= 36,
           cardWidth: width,
           cardHeight: cardHeight,
         ),
@@ -777,62 +768,321 @@ class _DayColumnState extends State<_DayColumn> {
     );
   }
 
-  /// 把卡片包成可拖动的（同一周内可拖到任意星期 / 节次）。
+  /// 把整张课程卡片包成短按编辑、长按拖动的交互区域。
   ///
-  /// 只有长按右下角的「拖动柄」后才能发起拖动，卡片正文的点击/长按仍分别用于
-  /// 查看详情和编辑课程，避免手指在课表上滑动时误触拖动。
+  /// 拖动不再依赖右下角小按钮：手指按住卡片后，卡片会缩小并显示环形进度；
+  /// 按住超过长按阈值才进入拖动。短按仍由 [CourseCard] 的 InkWell 处理，
+  /// 因此课表横向滑动或瞬间拖动不会误编辑、误拖课。
   Widget _draggableCard(
     Widget card,
     SessionEntry entry, {
-    required bool showHandle,
     required double cardWidth,
     required double cardHeight,
   }) {
-    if (widget.onPeriodsChanged == null || !showHandle) return card;
-
-    Widget handle() => Container(
-          key: ValueKey('course_drag_handle_${entry.session.id}'),
-          padding: const EdgeInsets.all(1),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Icon(
-            Icons.drag_indicator,
-            size: 12,
-            color: Colors.white.withValues(alpha: 0.92),
-          ),
-        );
-
-    final data = _DragSession(course: entry.course, session: entry.session);
-    final feedback = SizedBox(
-      width: 120,
-      height: 56,
-      child: CourseCard(course: entry.course, session: entry.session),
+    if (widget.onPeriodsChanged == null) return card;
+    return _DraggableCourseCard(
+      entry: entry,
+      cardWidth: cardWidth,
+      cardHeight: cardHeight,
+      child: card,
     );
+  }
+}
 
+/// 整卡长按拖动状态机。
+///
+/// [LongPressDraggable] 决定长按是否成立；[Listener] 只负责在阈值到达前
+/// 渐进显示按压反馈，因此不会额外参与手势竞技。卡片浮层中的点击仍由
+/// [CourseCard] 处理：短按进入编辑，持续按住则取消点击并进入拖动。
+class _DraggableCourseCard extends StatefulWidget {
+  const _DraggableCourseCard({
+    required this.entry,
+    required this.cardWidth,
+    required this.cardHeight,
+    required this.child,
+  });
+
+  final SessionEntry entry;
+  final double cardWidth;
+  final double cardHeight;
+  final Widget child;
+
+  @override
+  State<_DraggableCourseCard> createState() => _DraggableCourseCardState();
+}
+
+class _DraggableCourseCardState extends State<_DraggableCourseCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _holdController = AnimationController(
+    vsync: this,
+    duration: kLongPressTimeout - const Duration(milliseconds: 60),
+  );
+  Offset? _pointerDownPosition;
+  bool _pressing = false;
+  bool _dragging = false;
+
+  String get _sessionId => widget.entry.session.id;
+
+  @override
+  void dispose() {
+    _holdController.dispose();
+    super.dispose();
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    if (_dragging) return;
+    _pointerDownPosition = event.position;
+    setState(() => _pressing = true);
+    _holdController.forward(from: 0);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    final down = _pointerDownPosition;
+    if (down == null || _dragging) return;
+    if ((event.position - down).distance > kTouchSlop) {
+      _cancelPress();
+    }
+  }
+
+  void _cancelPress() {
+    _pointerDownPosition = null;
+    _holdController.stop();
+    _holdController.value = 0;
+    if (_pressing && mounted) {
+      setState(() => _pressing = false);
+    }
+  }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    if (!_dragging) _cancelPress();
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    if (!_dragging) _cancelPress();
+  }
+
+  void _handleDragStarted() {
+    _pointerDownPosition = null;
+    _holdController.stop();
+    _holdController.value = 1;
+    HapticFeedback.heavyImpact();
+    if (mounted) {
+      setState(() {
+        _pressing = false;
+        _dragging = true;
+      });
+    }
+  }
+
+  void _handleDragFinished() {
+    _pointerDownPosition = null;
+    _holdController.value = 0;
+    if (!mounted) return;
+    setState(() {
+      _pressing = false;
+      _dragging = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.entry.session;
+    final data = _DragSession(course: widget.entry.course, session: session);
+    return Semantics(
+      hint: _dragging ? '正在拖动课程' : '短按编辑，长按后拖动',
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: _handlePointerDown,
+        onPointerMove: _handlePointerMove,
+        onPointerUp: _handlePointerUp,
+        onPointerCancel: _handlePointerCancel,
+        child: LongPressDraggable<_DragSession>(
+          key: ValueKey('course_drag_surface_$_sessionId'),
+          data: data,
+          rootOverlay: true,
+          hapticFeedbackOnStart: false,
+          feedback: _CourseDragFeedback(
+            course: widget.entry.course,
+            session: session,
+            width: math.max(132.0, widget.cardWidth).clamp(132.0, 176.0),
+            height: math.max(72.0, widget.cardHeight).clamp(72.0, 128.0),
+          ),
+          childWhenDragging: _buildDraggingSource(context),
+          onDragStarted: _handleDragStarted,
+          onDragEnd: (_) => _handleDragFinished(),
+          onDraggableCanceled: (_, _) => _handleDragFinished(),
+          child: AnimatedBuilder(
+            animation: _holdController,
+            child: widget.child,
+            builder: (context, child) {
+              final progress = Curves.easeOutCubic.transform(
+                _holdController.value.clamp(0.0, 1.0),
+              );
+              final scale = _pressing ? 1 - 0.035 * progress : 1.0;
+              return Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.none,
+                children: [
+                  Transform.scale(
+                    scale: scale,
+                    child: child,
+                  ),
+                  if (_pressing) ...[
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.white.withValues(
+                                alpha: 0.5 + 0.45 * progress,
+                              ),
+                              width: 1.2 + 1.3 * progress,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 6,
+                      right: 6,
+                      bottom: 3,
+                      height: 3,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: ColoredBox(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: FractionallySizedBox(
+                              widthFactor: progress,
+                              child: const ColoredBox(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: IgnorePointer(
+                        child: Container(
+                          key: ValueKey('course_hold_progress_$_sessionId'),
+                          width: 28,
+                          height: 28,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.42),
+                            shape: BoxShape.circle,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: CircularProgressIndicator(
+                            value: progress,
+                            strokeWidth: 2.4,
+                            backgroundColor: Colors.white24,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDraggingSource(BuildContext context) {
     return Stack(
+      key: ValueKey('course_dragging_source_$_sessionId'),
+      fit: StackFit.expand,
       children: [
-        card,
-        Positioned(
-          right: 2,
-          bottom: 2,
-          child: Tooltip(
-            message: '长按后拖动调整节次',
-            triggerMode: TooltipTriggerMode.manual,
-            child: LongPressDraggable<_DragSession>(
-              data: data,
-              feedback: feedback,
-              // 手指按在右下角手柄上时，让反馈卡片的左上角对齐原卡片左上角，
-              // 这样落点节次 = 卡片顶部所在节次，不会因手柄位置整体偏移。
-              dragAnchorStrategy: (draggable, context, position) =>
-                  Offset(cardWidth - 8, cardHeight - 8),
-              childWhenDragging: Opacity(opacity: 0.3, child: handle()),
-              child: handle(),
+        Opacity(opacity: 0.22, child: widget.child),
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white70, width: 1.5),
             ),
           ),
         ),
+        const Center(
+          child: Icon(Icons.pan_tool_alt_rounded, color: Colors.white, size: 20),
+        ),
       ],
+    );
+  }
+}
+
+class _CourseDragFeedback extends StatelessWidget {
+  const _CourseDragFeedback({
+    required this.course,
+    required this.session,
+    required this.width,
+    required this.height,
+  });
+
+  final Course course;
+  final Session session;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: ValueKey('course_drag_feedback_${session.id}'),
+      color: Colors.transparent,
+      elevation: 18,
+      shadowColor: Colors.black54,
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CourseCard(course: course, session: session),
+            Positioned(
+              right: 6,
+              top: 6,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.62),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.pan_tool_alt_rounded,
+                        size: 11,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 3),
+                      Text(
+                        '拖动中',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

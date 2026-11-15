@@ -218,13 +218,7 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
                   holidayDays: holidayDays,
                   minRowHeight: 54,
                   timeAxisWidth: axisWidth,
-                  onTap: (course, session) => _showCourseSheet(
-                    context,
-                    course,
-                    session,
-                    timetable.slotsForWeek(week),
-                  ),
-                  onLongPress: (course, session) =>
+                  onTap: (course, session) =>
                       _openCourseEditor(context, course),
                   onBlankRangeSelected: (day, start, end) =>
                       _openNewCourseAt(context, day, start, end),

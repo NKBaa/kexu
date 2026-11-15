@@ -128,7 +128,7 @@ class CourseCard extends StatelessWidget {
       child: Tooltip(
         message: tooltipText,
         excludeFromSemantics: true,
-        waitDuration: const Duration(milliseconds: 400),
+        triggerMode: TooltipTriggerMode.manual,
         child: Material(
           color: background,
           borderRadius: BorderRadius.circular(18),
