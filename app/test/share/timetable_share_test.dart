@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:course_timetable/data/backup/app_backup.dart';
+import 'package:course_timetable/data/models/app_settings.dart';
 import 'package:course_timetable/data/models/course.dart';
 import 'package:course_timetable/data/models/holiday.dart';
 import 'package:course_timetable/data/models/semester.dart';
 import 'package:course_timetable/data/models/timetable.dart';
+import 'package:course_timetable/data/sync/sync_state.dart';
 import 'package:course_timetable/features/timetable/timetable_share_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -65,13 +68,24 @@ void main() {
     expect(ics, contains('20260914T080000'));
   });
 
-  test('JSON 导出可被课表模型重新解析', () {
-    final json = service.buildJson(_timetable());
-    final decoded = jsonDecode(json) as Map<String, dynamic>;
-    final restored = Timetable.fromJson(decoded);
-    expect(restored.semester.name, '2026 秋季学期');
-    expect(restored.courses.single.name, '高等数学');
-    expect(restored.courses.single.sessions.single.weeks, [1, 2]);
+  test('JSON 导出包含完整数据并可重新解析', () {
+    final timetable = _timetable();
+    final backup = AppBackup.create(
+      timetable: timetable,
+      settings: const AppSettings(showWeekend: false),
+      scheduleEvents: const [],
+      history: const [],
+      syncState: const SyncState(),
+      now: DateTime(2026, 9, 1, 10),
+    );
+    final json = service.buildJson(backup);
+    final restored = AppBackup.tryDecode(json);
+
+    expect(restored, isNotNull);
+    expect(restored!.timetable.semester.name, '2026 秋季学期');
+    expect(restored.timetable.courses.single.name, '高等数学');
+    expect(restored.timetable.courses.single.sessions.single.weeks, [1, 2]);
+    expect(restored.settings.showWeekend, isFalse);
   });
 
   test('日历文本使用 CRLF 并折叠超长行', () {

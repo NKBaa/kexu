@@ -13,6 +13,7 @@ import 'providers/timetable_provider.dart';
 import 'timetable_share_service.dart';
 import '../batch/batch_ops_page.dart';
 import '../editor/course_editor_page.dart';
+import '../import_export/app_backup_coordinator.dart';
 import '../onboarding/onboarding_wizard_page.dart';
 import '../settings/pages/data_settings_page.dart';
 import '../settings/providers/settings_provider.dart';
@@ -548,8 +549,8 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
             ),
             ListTile(
               leading: const Icon(Icons.data_object),
-              title: const Text('分享 JSON 文件'),
-              subtitle: const Text('完整课表数据，可备份或再次导入'),
+              title: const Text('分享完整备份（.json）'),
+              subtitle: const Text('全部数据；含 API Key/网盘密码，请妥善保管'),
               key: const Key('share_json_option'),
               onTap: () => Navigator.pop(ctx, 'json'),
             ),
@@ -566,7 +567,8 @@ class _TimetableViewState extends ConsumerState<_TimetableView> {
       if (action == 'ics') {
         await service.shareIcs(widget.timetable, holidays: holidays);
       } else {
-        await service.shareJson(widget.timetable);
+        final backup = await collectAppBackup(ref, widget.timetable);
+        await service.shareJson(backup);
       }
     } catch (e) {
       if (!context.mounted) return;

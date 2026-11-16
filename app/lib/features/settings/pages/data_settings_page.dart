@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/timetable.dart';
 import '../../../data/repositories/timetable_repository.dart';
+import '../../import_export/app_backup_coordinator.dart';
 import '../../import_export/import_export_page.dart';
 import '../../sync/sync_page.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -67,7 +70,7 @@ class _DataSettingsPageState extends ConsumerState<DataSettingsPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '导出为 JSON 文件或复制到剪贴板，用于换机迁移与备份。',
+                  '导出完整 JSON 备份，包含课程、日程、设置、主题、历史与同步状态。',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -210,10 +213,12 @@ class _DataSettingsPageState extends ConsumerState<DataSettingsPage> {
           .replaceAll('.', '-')
           .substring(0, 19);
       final sep = path.contains(r'\') ? r'\' : '/';
-      final target = '$dir${sep}backup_$stamp.json';
-      await _repo.exportToFile(timetable, target);
+      final target = '$dir${sep}kexu_backup_$stamp.json';
+      final backup = await collectAppBackup(ref, timetable);
+      final file = File(target);
+      await file.writeAsString(backup.toJsonText(), flush: true);
       if (!mounted) return;
-      _toast('已备份到 $target');
+      _toast('完整数据已备份到 $target');
     } catch (e) {
       if (!mounted) return;
       _toast('备份失败：$e', error: true);

@@ -5,13 +5,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/utils/holiday_utils.dart';
+import '../../data/backup/app_backup.dart';
 import '../../core/utils/week_utils.dart';
 import '../../data/models/holiday.dart';
 import '../../data/models/semester.dart';
 import '../../data/models/timetable.dart';
 
-/// 课表分享：把当前课表导出为 `.ics` 日历文件或 `.json` 数据文件，
-/// 再交给系统分享面板。
+/// 课表分享：把当前课表导出为 `.ics` 日历文件，或把全部应用数据导出为
+/// `.json` 完整备份，再交给系统分享面板。
 ///
 /// 日历文件按「每次课的实际日期」展开成 VEVENT：
 /// - 周次来自 `Session.weeks`，日期由学期第 1 周周一换算；
@@ -112,9 +113,8 @@ class TimetableShareService {
     return _foldIcsLines(buffer.toString());
   }
 
-  /// 生成课表 JSON 文本（与数据管理里的备份格式一致）。
-  String buildJson(Timetable timetable) =>
-      const JsonEncoder.withIndent('  ').convert(timetable.toJson());
+  /// 生成完整应用备份 JSON 文本（与数据管理里的备份格式一致）。
+  String buildJson(AppBackup backup) => backup.toJsonText();
 
   /// 写 `.ics` 到临时目录，返回文件。
   Future<File> writeIcs(
@@ -131,11 +131,11 @@ class TimetableShareService {
     return file;
   }
 
-  /// 写 `.json` 到临时目录，返回文件。
-  Future<File> writeJson(Timetable timetable, {DateTime? now}) async {
-    final at = now ?? DateTime.now();
-    final file = await _shareFile('kexu-timetable-${_dateStamp(at)}.json');
-    await file.writeAsString(buildJson(timetable), flush: true);
+  /// 写完整备份 `.json` 到临时目录，返回文件。
+  Future<File> writeJson(AppBackup backup, {DateTime? now}) async {
+    final at = now ?? backup.exportedAt;
+    final file = await _shareFile('kexu-backup-${_dateStamp(at)}.json');
+    await file.writeAsString(buildJson(backup), flush: true);
     return file;
   }
 
@@ -154,14 +154,14 @@ class TimetableShareService {
     );
   }
 
-  /// 生成 `.json` 并打开系统分享面板。
-  Future<ShareResult> shareJson(Timetable timetable, {DateTime? now}) async {
-    final file = await writeJson(timetable, now: now);
+  /// 生成完整备份 `.json` 并打开系统分享面板。
+  Future<ShareResult> shareJson(AppBackup backup, {DateTime? now}) async {
+    final file = await writeJson(backup, now: now);
     return _share(
       file,
       mimeType: 'application/json',
-      subject: '课序课表 · ${timetable.semester.name}',
-      text: '来自课序的课表数据，可在「数据管理」中导入。',
+      subject: '课序完整备份 · ${backup.timetable.semester.name}',
+      text: '来自课序的完整数据备份，可在「数据管理」中恢复。',
     );
   }
 

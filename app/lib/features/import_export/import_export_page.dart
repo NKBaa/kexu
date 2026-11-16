@@ -7,10 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/ids.dart';
+import '../../data/backup/app_backup.dart';
 import '../../data/models/course.dart';
 import '../../data/models/timetable.dart';
 import '../../data/repositories/timetable_repository.dart';
 import '../timetable/providers/timetable_provider.dart';
+import 'app_backup_coordinator.dart';
 
 /// 数据导入导出页：JSON 文件 + 剪贴板双通道。
 ///
@@ -36,6 +38,7 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
 
   /// 最近一次解析成功的预览。
   Timetable? _preview;
+  AppBackup? _backupPreview;
   String? _previewError;
   String? _previewSource;
 
@@ -53,16 +56,17 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}';
   }
 
-  String _buildJson(Timetable timetable) => _repo.exportToJsonText(timetable);
+  Future<String> _buildJson(Timetable timetable) async =>
+      (await collectAppBackup(ref, timetable)).toJsonText();
 
   Future<void> _exportToFile(Timetable timetable) async {
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      final jsonText = _buildJson(timetable);
-      final fileName = '课表备份_${_fileStamp()}.json';
+      final jsonText = await _buildJson(timetable);
+      final fileName = '课序完整备份_${_fileStamp()}.json';
       final uri = await FilePicker.saveFile(
-        dialogTitle: '导出课表 JSON',
+        dialogTitle: '导出课序完整备份',
         fileName: fileName,
         type: FileType.custom,
         allowedExtensions: const ['json'],
@@ -79,7 +83,9 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
       // Windows 的保存对话框一般会自己带上扩展名，但用户可能手动删掉，兜一下。
       final target = path.toLowerCase().endsWith('.json') ? path : '$path.json';
       if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        await _repo.exportToFile(timetable, target);
+        final file = File(target);
+        await file.parent.create(recursive: true);
+        await file.writeAsString(jsonText, flush: true);
       }
       if (!mounted) return;
       _toast('已导出到 $target');
@@ -93,9 +99,10 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
 
   Future<void> _copyToClipboard(Timetable timetable) async {
     try {
-      await Clipboard.setData(ClipboardData(text: _buildJson(timetable)));
+      final jsonText = await _buildJson(timetable);
+      await Clipboard.setData(ClipboardData(text: jsonText));
       if (!mounted) return;
-      _toast('课表 JSON 已复制到剪贴板（${timetable.courses.length} 门课程）');
+      _toast('完整备份已复制到剪贴板（${timetable.courses.length} 门课程及全部设置）');
     } catch (e) {
       if (!mounted) return;
       _toast('复制失败：$e', error: true);
@@ -110,7 +117,7 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
     setState(() => _busy = true);
     try {
       final files = await FilePicker.pickFiles(
-        dialogTitle: '选择课表 JSON 文件',
+        dialogTitle: '选择课序 JSON 备份',
         type: FileType.custom,
         allowedExtensions: const ['json'],
       );
@@ -163,8 +170,20 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
   /// 解析文本并展示预览。解析失败只提示，不改动现有数据。
   void _parseText(String text, {String? source}) {
     try {
+      final backup = AppBackup.tryDecode(text);
+      if (backup != null) {
+        setState(() {
+          _backupPreview = backup;
+          _preview = null;
+          _previewError = null;
+          _previewSource = source;
+        });
+        _showBackupPreviewDialog(backup, source);
+        return;
+      }
       final t = _repo.importFromJsonText(text);
       setState(() {
+        _backupPreview = null;
         _preview = t;
         _previewError = null;
         _previewSource = source;
@@ -172,11 +191,93 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
       _showPreviewDialog(t, source);
     } catch (e) {
       setState(() {
+        _backupPreview = null;
         _preview = null;
         _previewError = e.toString();
         _previewSource = source;
       });
       _toast('解析失败：$e', error: true);
+    }
+  }
+
+  Future<void> _showBackupPreviewDialog(
+    AppBackup backup,
+    String? source,
+  ) async {
+    final restore = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('完整备份解析成功'),
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (source != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '来源：$source',
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+                ),
+              _kv(ctx, '导出时间', backup.exportedAt.toString()),
+              _kv(ctx, '导出版本', backup.appVersion),
+              _kv(ctx, '学期', backup.timetable.semester.name),
+              _kv(ctx, '课程', '${backup.timetable.courses.length} 门'),
+              _kv(ctx, '日程', '${backup.scheduleEvents.length} 条'),
+              _kv(ctx, '主题', '${backup.settings.customThemes.length} 个自定义主题'),
+              _kv(ctx, '节假日', '${backup.settings.holidays.length} 天'),
+              _kv(ctx, '撤销历史', '${backup.history.length} 条'),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '恢复会替换当前课表、日程、设置、主题、历史与同步状态。'
+                  '备份中可能包含 API Key、网盘密码等敏感信息，请妥善保管。',
+                  style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(ctx).colorScheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('恢复完整备份'),
+          ),
+        ],
+      ),
+    );
+    if (restore == true && mounted) await _restoreBackup(backup);
+  }
+
+  Future<void> _restoreBackup(AppBackup backup) async {
+    setState(() => _busy = true);
+    try {
+      await restoreAppBackup(ref, backup);
+      if (!mounted) return;
+      _toast('完整备份已恢复');
+      setState(() {
+        _backupPreview = null;
+        _preview = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _toast('恢复失败：$e', error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -447,14 +548,18 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
 
   Widget _buildExportCard(BuildContext context, Timetable timetable) {
     final theme = Theme.of(context);
-    final json = _buildJson(timetable);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _cardTitle(context, Icons.ios_share, '导出', '备份成 JSON，可在另一台设备导入'),
+            _cardTitle(
+              context,
+              Icons.ios_share,
+              '导出完整备份',
+              '包含课程、日程、设置、主题、历史与同步状态',
+            ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -463,7 +568,7 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
                 FilledButton.tonalIcon(
                   onPressed: _busy ? null : () => _exportToFile(timetable),
                   icon: const Icon(Icons.file_download_outlined, size: 18),
-                  label: const Text('导出为 JSON 文件'),
+                  label: const Text('导出完整备份文件'),
                 ),
                 OutlinedButton.icon(
                   onPressed: _busy ? null : () => _copyToClipboard(timetable),
@@ -474,8 +579,8 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
             ),
             const SizedBox(height: 10),
             Text(
-              '文件内容约 ${(json.length / 1024).toStringAsFixed(1)} KB，'
-              '包含学期、作息与全部课程（含调课记录）。',
+              '包含学期、作息、全部课程、日程事件、自定义主题、节假日、撤销历史、'
+              '同步状态以及 AI/网盘配置。备份可能包含 API Key 和密码，请仅在可信位置保存。',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -525,6 +630,44 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onErrorContainer,
                   ),
+                ),
+              ),
+            ],
+            if (_backupPreview != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '已解析完整备份：'
+                        '${_backupPreview!.timetable.courses.length} 门课程 · '
+                        '${_backupPreview!.scheduleEvents.length} 条日程 · '
+                        '${_backupPreview!.history.length} 条历史',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _showBackupPreviewDialog(
+                        _backupPreview!,
+                        _previewSource,
+                      ),
+                      child: const Text('再次恢复'),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -627,6 +770,7 @@ class _ImportExportPageState extends ConsumerState<ImportExportPage> {
                     onPressed: () => setState(() {
                       _textCtrl.clear();
                       _preview = null;
+                      _backupPreview = null;
                       _previewError = null;
                     }),
                     icon: const Icon(Icons.clear, size: 18),

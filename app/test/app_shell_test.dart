@@ -508,7 +508,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('分享日历文件（.ics）'), findsOneWidget);
-    expect(find.text('分享 JSON 文件'), findsOneWidget);
+    expect(find.text('分享完整备份（.json）'), findsOneWidget);
     expect(find.byKey(const Key('share_ics_option')), findsOneWidget);
     expect(find.byKey(const Key('share_json_option')), findsOneWidget);
   });

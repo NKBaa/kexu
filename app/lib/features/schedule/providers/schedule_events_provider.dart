@@ -45,6 +45,10 @@ class ScheduleEventsController extends AsyncNotifier<List<ScheduleEvent>> {
     await _save([...current, ...events]);
   }
 
+  Future<void> replaceAll(List<ScheduleEvent> events) async {
+    await _save(events);
+  }
+
   Future<void> upsert(ScheduleEvent event) async {
     final current = state.valueOrNull ?? const <ScheduleEvent>[];
     await _save([

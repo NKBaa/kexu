@@ -124,6 +124,15 @@ class TimetableHistoryRepository {
   }
 
   /// 回退最近一次修改：弹出并返回最新的快照；没有历史时返回 null。
+  /// 用备份中的历史整体替换本地历史，并按现有上限保留最近的记录。
+  Future<void> replaceAll(List<TimetableHistoryEntry> entries) async {
+    final next = List<TimetableHistoryEntry>.of(entries);
+    if (next.length > maxEntries) {
+      next.removeRange(0, next.length - maxEntries);
+    }
+    await _write(next);
+  }
+
   Future<TimetableHistoryEntry?> undoLatest() async {
     final entries = await load();
     if (entries.isEmpty) return null;
