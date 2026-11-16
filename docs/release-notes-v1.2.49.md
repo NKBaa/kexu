@@ -13,7 +13,11 @@
 
 版本：1.2.49+105（Android versionCode 105）。
 
-## 构建产物命名
+## 签名说明
 
-- Android：`kexu-v1.2.49.apk`，沿用固定发布签名。
-- Windows：`kexu-v1.2.49-windows.zip`，解压后运行 `course_timetable.exe`。
+本次更换了 Android 发布签名。由于旧签名密钥无法恢复，安装 v1.2.49 前需要卸载旧版本；从本版本开始，后续 Android 更新恢复为可覆盖安装。
+
+## 构建产物
+
+- Android：`kexu-v1.2.49.apk`，使用新的固定发布签名。
+- Windows：本版本不构建。
