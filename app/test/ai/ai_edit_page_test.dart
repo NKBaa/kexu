@@ -347,4 +347,55 @@ void main() {
     expect(repo.events.single.title, '交高数作业');
     await tester.pump(const Duration(seconds: 2));
   });
+
+  testWidgets('日程可以基于上一轮上下文继续二次编辑', (tester) async {
+    _bigWindow(tester);
+    final requests = <http.Request>[];
+    await tester.pumpWidget(
+      _wrap(
+        timetable: _FakeTimetableController(_seed()),
+        settings: _FakeSettingsController(_configuredSettings),
+        client: AiClient(
+          config: _textConfig,
+          httpClient: _sequenceClient([
+            '{"events":[{"title":"交高数作业","date":"2025-09-02",'
+                '"startTime":"15:00","endTime":null,"note":""}]}',
+            '{"events":[{"title":"交高数作业","date":"2025-09-02",'
+                '"startTime":"20:00","endTime":null,"note":""}]}',
+          ], requests),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('ai_edit_input')),
+      '明天下午三点交高数作业',
+    );
+    await tester.tap(find.byKey(const ValueKey('ai_edit_send')));
+    await tester.pumpAndSettle();
+
+    // 第二轮没有「日程/作业」等关键词。它必须继承上一轮模式，并把历史
+    // 发给模型，才能把上一版的 15:00 改成 20:00。
+    await tester.enterText(
+      find.byKey(const ValueKey('ai_edit_input')),
+      '把时间改成晚上八点',
+    );
+    await tester.tap(find.byKey(const ValueKey('ai_edit_send')));
+    await tester.pumpAndSettle();
+
+    expect(requests, hasLength(2));
+    final body =
+        jsonDecode(utf8.decode(requests[1].bodyBytes)) as Map<String, dynamic>;
+    final messages = body['messages'] as List;
+    expect(messages, hasLength(4));
+    expect(
+      messages.map((message) => (message as Map)['role']),
+      ['system', 'user', 'assistant', 'user'],
+    );
+    expect((messages[1] as Map)['content'], '明天下午三点交高数作业');
+    expect((messages[2] as Map)['content'], contains('15:00'));
+    expect((messages[3] as Map)['content'], contains('把时间改成晚上八点'));
+    expect(find.textContaining('20:00'), findsOneWidget);
+  });
 }

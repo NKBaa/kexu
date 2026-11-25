@@ -5,6 +5,22 @@ import '../../data/models/schedule_event.dart';
 import '../ai/ai_client.dart';
 import '../ai/ai_exception.dart';
 
+/// 一次日程整理结果。
+///
+/// [rawOutput] 会作为助手消息写入下一轮对话历史，让用户可以用
+/// 「改成晚上八点」这类省略了上下文的话继续二次编辑。
+class ScheduleEventPlanTurn {
+  const ScheduleEventPlanTurn({
+    required this.events,
+    required this.rawOutput,
+    required this.instruction,
+  });
+
+  final List<ScheduleEvent> events;
+  final String rawOutput;
+  final String instruction;
+}
+
 /// 用语言模型把一句话变成日程事件。
 ///
 /// 模型只负责解析，不直接写库；UI 让用户确认后再保存。
@@ -14,9 +30,20 @@ class ScheduleEventAiService {
 
   final AiClient _client;
 
-  Future<List<ScheduleEvent>> plan(
+  /// 兼容单轮调用；需要多轮上下文时使用 [planTurn]。
+  Future<List<ScheduleEvent>> plan(String instruction, {DateTime? now}) async {
+    final turn = await planTurn(instruction, now: now);
+    return turn.events;
+  }
+
+  /// 生成完整的日程方案。
+  ///
+  /// 有历史时会要求模型把最新指令应用到上一轮方案上，并返回编辑后的全部
+  /// 日程，而不是只返回这一次新增或改动的事项。
+  Future<ScheduleEventPlanTurn> planTurn(
     String instruction, {
     DateTime? now,
+    List<AiChatMessage> history = const [],
   }) async {
     final text = instruction.trim();
     if (text.isEmpty) {
@@ -26,11 +53,12 @@ class ScheduleEventAiService {
     final today =
         '${base.year}-${base.month.toString().padLeft(2, '0')}-${base.day.toString().padLeft(2, '0')}';
     final weekday = const ['一', '二', '三', '四', '五', '六', '日'][base.weekday - 1];
-    final prompt = '''
+    final prompt =
+        '''
 你在帮用户把自然语言整理成「日程」列表。日程和课表无关，是考试、作业截止、活动、会议等个人事项。
 今天是 $today（星期$weekday）。
 
-用户的话：
+用户最新的话：
 $text
 
 请只输出严格 JSON，不要 markdown 代码块，不要解释：
@@ -42,12 +70,17 @@ $text
 3. 一句话里有多个事项时输出多条 events。
 4. 日期必须落在合理范围；不确定的日期不要编造，可以在 note 里说明。
 5. title 要简短明确，不要带日期时间。
+6. 如果对话历史里已有日程方案，用户最新的话要理解为在上一版方案上继续修改。请返回修改后的完整 events 列表：保留历史中未被要求改动的事项，替换被改动的事项，并包含新增加的事项；不要只返回变化项。
 ''';
-    final raw = await _client.chatText(
-      prompt,
-      system: '你是一个严谨的日程结构化助手，只输出可解析的 JSON。',
+    final raw = await _client.chatMessages([
+      ...history,
+      AiChatMessage.user(prompt),
+    ], system: '你是一个严谨的日程结构化助手，只输出可解析的 JSON。');
+    return ScheduleEventPlanTurn(
+      events: parseEvents(raw),
+      rawOutput: raw,
+      instruction: text,
     );
-    return parseEvents(raw);
   }
 
   static List<ScheduleEvent> parseEvents(String raw) {

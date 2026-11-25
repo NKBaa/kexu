@@ -37,6 +37,12 @@ class AiEditPage extends ConsumerStatefulWidget {
 /// 对话里一条记录的类型。
 enum _EntryKind { user, assistant, plan, schedulePlan, report, error }
 
+/// 当前对话最近一次处理的类型。
+///
+/// 后续输入若没有明确的「课表」或「日程」关键词，就沿用上一轮类型。
+/// 例如先添加日程，再说「改成晚上八点」，仍应编辑同一份日程方案。
+enum _AiMode { timetable, schedule }
+
 /// 对话记录条目。
 class _ChatEntry {
   _ChatEntry._({
@@ -95,7 +101,12 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
   final List<_ChatEntry> _entries = <_ChatEntry>[];
 
   /// 多轮对话历史：用户原话 + 模型原始回复。
+  ///
+  /// 课表和日程分别保存，避免切换功能时把两种 JSON 契约混在一起；
+  /// 同一功能内则会完整发送历史，支持连续二次编辑。
   final List<AiChatMessage> _history = <AiChatMessage>[];
+  final List<AiChatMessage> _scheduleHistory = <AiChatMessage>[];
+  _AiMode? _lastMode;
 
   bool _busy = false;
   bool _applying = false;
@@ -200,9 +211,15 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
       return;
     }
 
-    // 同一个 AI 窗口同时处理「改课表」和「加日程」。
-    final wantsSchedule =
-        images.isEmpty && _looksLikeSchedule(text) && !_looksLikeTimetable(text);
+    // 同一个 AI 窗口同时处理「改课表」和「加日程」。用户追问时经常省略
+    // 「日程」二字，例如「把时间改成晚上八点」，因此没有明确类型时沿用
+    // 上一轮模式；一旦出现明确的课表关键词，仍可随时切回课表编辑。
+    final hasScheduleIntent = _looksLikeSchedule(text);
+    final hasTimetableIntent = _looksLikeTimetable(text);
+    final wantsSchedule = images.isEmpty &&
+        !hasTimetableIntent &&
+        (hasScheduleIntent ||
+            (!hasScheduleIntent && _lastMode == _AiMode.schedule));
     if (wantsSchedule) {
       await _submitSchedule(text);
       return;
@@ -216,6 +233,7 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
 
     setState(() {
       _busy = true;
+      _lastMode = _AiMode.timetable;
       _busyText = images.isEmpty
           ? '正在理解你的指令…'
           : textConfigured
@@ -279,21 +297,26 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
   bool _looksLikeTimetable(String text) => _timetableWords.hasMatch(text);
 
   Future<void> _submitSchedule(String text) async {
+    final history = List<AiChatMessage>.from(_scheduleHistory);
     setState(() {
       _busy = true;
-      _busyText = '正在整理日程…';
+      _lastMode = _AiMode.schedule;
+      _busyText = history.isEmpty ? '正在整理日程…' : '正在结合上下文修改日程…';
       _entries.add(_ChatEntry.user(text));
       _inputCtrl.clear();
     });
     _scrollToBottom();
     try {
-      final events = await ScheduleEventAiService(
+      final turn = await ScheduleEventAiService(
         client: ref.read(textAiClientProvider),
-      ).plan(text);
+      ).planTurn(text, history: history);
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _entries.add(_ChatEntry.schedulePlan(events));
+        _scheduleHistory
+          ..add(AiChatMessage.user(turn.instruction))
+          ..add(AiChatMessage.assistant(turn.rawOutput));
+        _entries.add(_ChatEntry.schedulePlan(turn.events));
       });
     } on AiException catch (e) {
       if (!mounted) return;
@@ -395,6 +418,8 @@ class _AiEditPageState extends ConsumerState<AiEditPage> {
     setState(() {
       _entries.clear();
       _history.clear();
+      _scheduleHistory.clear();
+      _lastMode = null;
       _inputCtrl.clear();
       _images.clear();
     });
